@@ -18,6 +18,7 @@ enum Commands {
         #[arg(short, long)]
         output: Option<PathBuf>,
 
+        /// size of the key generated. 
         #[arg(short, long)]
         size: Option<u16>
     },
