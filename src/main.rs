@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 use clap::{Parser, Subcommand};
 
+mod newkey;
+use newkey::newkey;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -27,6 +29,10 @@ enum Commands {
 fn main() {
     let cli = Cli::parse();
 
-    println!("Hello, world!");
-    println!("u16 max: {}", u16::MAX);
+    match &cli.command {
+        Commands::NewKey { output, size } => {
+            newkey(cli);
+        }
+        _ => todo!()
+    }
 }
