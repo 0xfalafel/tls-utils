@@ -31,7 +31,7 @@ fn main() {
 
     match &cli.command {
         Commands::NewKey { output, size } => {
-            newkey(cli);
+            newkey(output, size);
         }
         _ => todo!()
     }
