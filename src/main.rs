@@ -1,10 +1,13 @@
 use std::path::PathBuf;
 use clap::{Parser, Subcommand};
+use colored::Colorize;
 
 mod newkey;
+mod key;
 mod util;
-use colored::Colorize;
+
 use newkey::newkey;
+use key::key;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -31,6 +34,11 @@ enum Commands {
         #[arg(short, long)]
         size: Option<u16>
     },
+
+    /// Inspect a key file
+    Key {
+        keyfile: PathBuf,
+    },
 }
 
 fn main() {
@@ -38,7 +46,16 @@ fn main() {
 
     match &cli.command {
         Commands::NewKey { output, outpub, size } => {
-            if let Err(error_msg) = newkey(output, outpub, size) {
+            let res = newkey(output, outpub, size);
+            
+            if let Err(error_msg) = res {
+                eprintln!("{}", error_msg.red());
+            }
+        },
+        Commands::Key { keyfile } => {
+            let res = key(keyfile);
+
+            if let Err(error_msg) = res {
                 eprintln!("{}", error_msg.red());
             }
         }

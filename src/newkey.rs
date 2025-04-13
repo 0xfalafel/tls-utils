@@ -11,6 +11,7 @@ use rsa::pkcs1::{EncodeRsaPrivateKey, EncodeRsaPublicKey};
 
 use crate::util::loading_animation;
 
+/// Generate a new private key
 pub fn newkey(output: &Option<PathBuf>, outpub: &Option<PathBuf>,size: &Option<u16>) -> Result<(), String> {
 
     let size: u16 = match *size {
