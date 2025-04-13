@@ -19,11 +19,15 @@ struct Cli {
 enum Commands {
     /// generate a new asymetric key (i.e RSA)
     NewKey {
-        /// write the key to this file
+        /// write the private key to this file
         #[arg(short, long)]
         output: Option<PathBuf>,
 
-        /// size of the key generated. 
+        /// write the public key to this file
+        #[arg(short='p', long)]
+        outpub: Option<PathBuf>,
+
+        /// size of the key generated (1024, 2048 or 4096). 
         #[arg(short, long)]
         size: Option<u16>
     },
@@ -33,8 +37,8 @@ fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::NewKey { output, size } => {
-            if let Err(error_msg) = newkey(output, size) {
+        Commands::NewKey { output, outpub, size } => {
+            if let Err(error_msg) = newkey(output, outpub, size) {
                 eprintln!("{}", error_msg.red());
             }
         }

@@ -7,11 +7,11 @@ use std::sync::Arc;
 use colored::Colorize;
 use rsa::pkcs8::LineEnding;
 use rsa::{rand_core::OsRng, RsaPrivateKey, RsaPublicKey};
-use rsa::pkcs1::EncodeRsaPrivateKey;
+use rsa::pkcs1::{EncodeRsaPrivateKey, EncodeRsaPublicKey};
 
 use crate::util::loading_animation;
 
-pub fn newkey(output: &Option<PathBuf>, size: &Option<u16>) -> Result<(), String> {
+pub fn newkey(output: &Option<PathBuf>, outpub: &Option<PathBuf>,size: &Option<u16>) -> Result<(), String> {
 
     let size: u16 = match *size {
         Some(s) if 1024 | 2048 | 4096 == s => s,
@@ -22,7 +22,7 @@ pub fn newkey(output: &Option<PathBuf>, size: &Option<u16>) -> Result<(), String
     let run_animation = Arc::new(AtomicBool::new(true));
     let run_animation_clone = Arc::clone(&run_animation);
 
-    // small animation to help the user wait
+    // small animation while the private key is generated
     let animation = thread::spawn(move || {
         let key_size = format!("{} bits", size);
         loading_animation(
@@ -34,7 +34,7 @@ pub fn newkey(output: &Option<PathBuf>, size: &Option<u16>) -> Result<(), String
     let priv_key = RsaPrivateKey::new(&mut OsRng, usize::from(size))
         .map_err(|_| "Failed to generate Private Key.")?;
 
-    // close the animation
+    // end the animation
     run_animation.store(false, Ordering::Relaxed);
     let _ = animation.join();
 
@@ -50,7 +50,19 @@ pub fn newkey(output: &Option<PathBuf>, size: &Option<u16>) -> Result<(), String
     let privkey_file = format!("{}", privkey_file.display());
     eprintln!("Private key written to {}", privkey_file.yellow().bold());
 
-    let _pub_key = RsaPublicKey::from(&priv_key);
+    if let Some(pubkey_file) = outpub {
+        let pubkey = RsaPublicKey::from(&priv_key);
+
+        let res = pubkey.write_pkcs1_pem_file(pubkey_file, LineEnding::default());
+
+        if res.is_err() {
+            return Err(format!("Failed to write private key to {}", pubkey_file.display()));
+        }
+
+        eprintln!("Private key written to {}", 
+            format!("{}", pubkey_file.display())
+            .yellow().bold());
+    }
 
     Ok(())
 }
