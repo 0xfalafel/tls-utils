@@ -2,6 +2,7 @@ use std::path::PathBuf;
 use clap::{Parser, Subcommand};
 
 mod newkey;
+mod util;
 use colored::Colorize;
 use newkey::newkey;
 

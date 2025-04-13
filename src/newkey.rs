@@ -3,7 +3,8 @@ use std::path::PathBuf;
 use rsa::pkcs8::LineEnding;
 use rsa::{rand_core::OsRng, RsaPrivateKey, RsaPublicKey};
 use rsa::pkcs1::EncodeRsaPrivateKey;
-use colored::Colorize;
+
+use crate::util::loading_animation;
 
 pub fn newkey(output: &Option<PathBuf>, size: &Option<u16>) -> Result<(), String> {
 
@@ -13,7 +14,7 @@ pub fn newkey(output: &Option<PathBuf>, size: &Option<u16>) -> Result<(), String
         _ => return Err("Invalid key size. Valid RSA key size are: 1024, 2048, 4096.".to_string())
     };
 
-    eprintln!("{}", "Please wait while the private key is being generated".blue());
+    loading_animation("Generating the private key");
 
     let priv_key = RsaPrivateKey::new(&mut OsRng, usize::from(size))
         .map_err(|_| "Failed to generate Private Key.")?;
