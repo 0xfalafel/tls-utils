@@ -37,6 +37,5 @@ fn main() {
                 eprintln!("{}", error_msg.red());
             }
         }
-        _ => todo!()
     }
 }
