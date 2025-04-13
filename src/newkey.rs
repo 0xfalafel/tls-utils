@@ -21,9 +21,9 @@ pub fn newkey(output: &Option<PathBuf>, size: &Option<u16>) -> Result<(), String
         None => return Err("An output file is required to store the private key".to_string()),
     };
 
-
-    priv_key.write_pkcs1_pem_file(privkey_file, LineEnding::default());
-
+    if priv_key.write_pkcs1_pem_file(privkey_file.clone(), LineEnding::default()).is_err() {
+        return Err(format!("Failed to write private key to {}", privkey_file.display()));
+    }
 
     let _pub_key = RsaPublicKey::from(&priv_key);
 
