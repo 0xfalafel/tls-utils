@@ -20,11 +20,11 @@ enum Commands {
     /// generate a new asymetric key (i.e RSA)
     NewKey {
         /// write the private key to this file
-        #[arg(short, long)]
+        #[arg(short, long, value_name = "PRIVATE KEY")]
         output: Option<PathBuf>,
 
         /// write the public key to this file
-        #[arg(short='p', long)]
+        #[arg(short='p', long, value_name = "PUBLIC KEY")]
         outpub: Option<PathBuf>,
 
         /// size of the key generated (1024, 2048 or 4096). 
