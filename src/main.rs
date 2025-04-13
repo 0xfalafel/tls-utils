@@ -30,7 +30,7 @@ enum Commands {
         #[arg(short='p', long, value_name = "PUBLIC KEY")]
         outpub: Option<PathBuf>,
 
-        /// size of the key generated (1024, 2048 or 4096). 
+        /// size of the key generated (512, 1024, 2048 or 4096). 
         #[arg(short, long)]
         size: Option<u16>
     },
