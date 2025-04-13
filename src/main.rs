@@ -2,11 +2,13 @@ use std::path::PathBuf;
 use clap::{Parser, Subcommand};
 
 mod newkey;
+use colored::Colorize;
 use newkey::newkey;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 #[command(propagate_version = true)]
+#[command(arg_required_else_help = true)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -31,7 +33,9 @@ fn main() {
 
     match &cli.command {
         Commands::NewKey { output, size } => {
-            newkey(output, size);
+            if let Err(error_msg) = newkey(output, size) {
+                eprintln!("{}", error_msg.red());
+            }
         }
         _ => todo!()
     }
