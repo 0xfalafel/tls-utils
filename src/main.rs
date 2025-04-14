@@ -36,7 +36,7 @@ enum Commands {
 
         /// encode the key in DER format
         #[arg(short, long)]
-        der: Option<bool>,        
+        der: bool,        
 
         /// use pkcs8 format, default is pkcs1
         #[arg(long)]

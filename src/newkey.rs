@@ -46,17 +46,8 @@ pub fn newkey(output: &Option<PathBuf>, outpub: &Option<PathBuf>,size: &Option<u
         None => return Err("An output file is required to store the private key".to_string()),
     };
 
-    let res: Result<(), Box<dyn Error>> = if *pkcs8 {
-        priv_key.write_pkcs8_pem_file(privkey_file.clone(), LineEnding::default())
-            .map_err(Box::from)
-    } else {
-        priv_key.write_pkcs1_pem_file(privkey_file.clone(), LineEnding::default())
-            .map_err(Box::from)
-    };
-
-    if res.is_err() {
-        return Err(format!("Failed to write private key to {}", privkey_file.display()))
-    }
+    // write the private key to `privkey_file`
+    write_key(&priv_key, &privkey_file, *pkcs8)?;
 
     let privkey_file = format!("{}", privkey_file.display());
     eprintln!("Private key written to {}", privkey_file.yellow().bold());
@@ -76,4 +67,24 @@ pub fn newkey(output: &Option<PathBuf>, outpub: &Option<PathBuf>,size: &Option<u
     }
 
     Ok(())
+}
+
+/// Write a public or private key to a file.
+/// pkcs8 or pkcs1 usage is defined by *pkcs8
+fn write_key(
+    priv_key: &RsaPrivateKey,
+    file_path: &PathBuf,
+    pkcs8: bool,
+) -> Result<(), String> {
+    let res: Result<(), Box<dyn Error>> = if pkcs8 {
+        priv_key
+            .write_pkcs8_pem_file(file_path, LineEnding::default())
+            .map_err(Box::from)
+    } else {
+        priv_key
+            .write_pkcs1_pem_file(file_path, LineEnding::default())
+            .map_err(Box::from)
+    };
+
+    res.map_err(|_| format!("Failed to write private key to {}", file_path.display()))
 }
