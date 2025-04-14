@@ -34,6 +34,10 @@ enum Commands {
         #[arg(short, long)]
         size: Option<u16>,
 
+        /// encode the key in DER format
+        #[arg(short, long)]
+        der: Option<bool>,        
+
         /// use pkcs8 format, default is pkcs1
         #[arg(long)]
         pkcs8: bool,
@@ -49,10 +53,12 @@ fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::NewKey { output, outpub, size, pkcs8 } => {
+        Commands::NewKey { 
+            output, outpub, size, der, pkcs8, 
+        } => {
             
             let res = newkey(
-                output, outpub, size, pkcs8
+                output, outpub, size, der, pkcs8
             );
             
             if let Err(error_msg) = res {
