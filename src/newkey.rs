@@ -1,5 +1,6 @@
 use std::thread;
 use std::path::PathBuf;
+use std::error::Error;
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -8,11 +9,12 @@ use colored::Colorize;
 use rsa::pkcs8::LineEnding;
 use rsa::{rand_core::OsRng, RsaPrivateKey, RsaPublicKey};
 use rsa::pkcs1::{EncodeRsaPrivateKey, EncodeRsaPublicKey};
+use rsa::pkcs8::EncodePrivateKey;
 
 use crate::util::loading_animation;
 
 /// Generate a new private key
-pub fn newkey(output: &Option<PathBuf>, outpub: &Option<PathBuf>,size: &Option<u16>) -> Result<(), String> {
+pub fn newkey(output: &Option<PathBuf>, outpub: &Option<PathBuf>,size: &Option<u16>, pkcs8: &bool) -> Result<(), String> {
 
     let size: u16 = match *size {
         Some(s) if 512 | 1024 | 2048 | 4096 == s => s,
@@ -44,8 +46,16 @@ pub fn newkey(output: &Option<PathBuf>, outpub: &Option<PathBuf>,size: &Option<u
         None => return Err("An output file is required to store the private key".to_string()),
     };
 
-    if priv_key.write_pkcs1_pem_file(privkey_file.clone(), LineEnding::default()).is_err() {
-        return Err(format!("Failed to write private key to {}", privkey_file.display()));
+    let res: Result<(), Box<dyn Error>> = if *pkcs8 {
+        priv_key.write_pkcs8_pem_file(privkey_file.clone(), LineEnding::default())
+            .map_err(Box::from)
+    } else {
+        priv_key.write_pkcs1_pem_file(privkey_file.clone(), LineEnding::default())
+            .map_err(Box::from)
+    };
+
+    if res.is_err() {
+        return Err(format!("Failed to write private key to {}", privkey_file.display()))
     }
 
     let privkey_file = format!("{}", privkey_file.display());

@@ -32,7 +32,11 @@ enum Commands {
 
         /// size of the key generated (512, 1024, 2048 or 4096). 
         #[arg(short, long)]
-        size: Option<u16>
+        size: Option<u16>,
+
+        /// use pkcs8 format, default is pkcs1
+        #[arg(long)]
+        pkcs8: bool,
     },
 
     /// Inspect a key file
@@ -45,8 +49,11 @@ fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::NewKey { output, outpub, size } => {
-            let res = newkey(output, outpub, size);
+        Commands::NewKey { output, outpub, size, pkcs8 } => {
+            
+            let res = newkey(
+                output, outpub, size, pkcs8
+            );
             
             if let Err(error_msg) = res {
                 eprintln!("{}", error_msg.red());
