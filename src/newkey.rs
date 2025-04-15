@@ -1,6 +1,5 @@
 use std::thread;
 use std::path::PathBuf;
-use std::error::Error;
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -47,7 +46,7 @@ pub fn newkey(output: &Option<PathBuf>, outpub: &Option<PathBuf>,size: &Option<u
     };
 
     // write the private key to `privkey_file`
-    write_private_key(&priv_key, &privkey_file, *pkcs8)?;
+    write_private_key(&priv_key, &privkey_file, *pkcs8, *der)?;
 
     let privkey_file = format!("{}", privkey_file.display());
     eprintln!("Private key written to {}", privkey_file.yellow().bold());
@@ -73,16 +72,19 @@ fn write_private_key(
     priv_key: &RsaPrivateKey,
     file_path: &PathBuf,
     pkcs8: bool,
+    der: bool,
 ) -> Result<(), String> {
-    let res: Result<(), Box<dyn Error>> = if pkcs8 {
-        priv_key
-            .write_pkcs8_pem_file(file_path, LineEnding::default())
-            .map_err(Box::from)
-    } else {
-        priv_key
-            .write_pkcs1_pem_file(file_path, LineEnding::default())
-            .map_err(Box::from)
-    };
 
-    res.map_err(|_| format!("Failed to write private key to {}", file_path.display()))
+    let err_msg = format!("Failed to write private key to {}", file_path.display());
+
+    match (pkcs8, der) {
+        (true, false)  => priv_key.write_pkcs8_pem_file(file_path, LineEnding::default())
+            .map_err(|_| err_msg),
+        (false, false) => priv_key.write_pkcs1_pem_file(file_path, LineEnding::default())
+            .map_err(|_| err_msg),
+        (true, true)   => priv_key.write_pkcs8_der_file(file_path)
+            .map_err(|_| err_msg),
+        (false, true)  => priv_key.write_pkcs1_der_file(file_path)
+            .map_err(|_| err_msg),
+    }
 }
