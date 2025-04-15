@@ -47,7 +47,7 @@ pub fn newkey(output: &Option<PathBuf>, outpub: &Option<PathBuf>,size: &Option<u
     };
 
     // write the private key to `privkey_file`
-    write_key(&priv_key, &privkey_file, *pkcs8)?;
+    write_private_key(&priv_key, &privkey_file, *pkcs8)?;
 
     let privkey_file = format!("{}", privkey_file.display());
     eprintln!("Private key written to {}", privkey_file.yellow().bold());
@@ -55,13 +55,12 @@ pub fn newkey(output: &Option<PathBuf>, outpub: &Option<PathBuf>,size: &Option<u
     if let Some(pubkey_file) = outpub {
         let pubkey = RsaPublicKey::from(&priv_key);
 
-        let res = pubkey.write_pkcs1_pem_file(pubkey_file, LineEnding::default());
+        // write the private key to `privkey_file`
+        pubkey
+            .write_pkcs1_pem_file(pubkey_file, LineEnding::default())
+            .map_err(|_| format!("Failed to write private key to {}", pubkey_file.display()))?;
 
-        if res.is_err() {
-            return Err(format!("Failed to write private key to {}", pubkey_file.display()));
-        }
-
-        eprintln!("Private key written to {}", 
+        eprintln!("Public key written to {}", 
             format!("{}", pubkey_file.display())
             .yellow().bold());
     }
@@ -69,9 +68,8 @@ pub fn newkey(output: &Option<PathBuf>, outpub: &Option<PathBuf>,size: &Option<u
     Ok(())
 }
 
-/// Write a public or private key to a file.
-/// pkcs8 or pkcs1 usage is defined by *pkcs8
-fn write_key(
+/// Write the private key to a file
+fn write_private_key(
     priv_key: &RsaPrivateKey,
     file_path: &PathBuf,
     pkcs8: bool,
