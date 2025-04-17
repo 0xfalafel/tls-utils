@@ -45,7 +45,11 @@ enum Commands {
 
     /// Inspect a key file
     Key {
+        /// Key to read
         keyfile: PathBuf,
+
+        /// Write the public key to this file
+        pubout: Option<PathBuf>,
     },
 }
 
@@ -65,8 +69,8 @@ fn main() {
                 eprintln!("{}", error_msg.red());
             }
         },
-        Commands::Key { keyfile } => {
-            let res = key(keyfile);
+        Commands::Key { keyfile , pubout} => {
+            let res = key(keyfile, pubout);
 
             if let Err(error_msg) = res {
                 eprintln!("{}", error_msg.red());

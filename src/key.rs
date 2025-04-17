@@ -40,7 +40,7 @@ fn read_private_key(file: &PathBuf) -> Result<RsaPrivateKey, String> {
 }
 
 /// Inspect the content of a key
-pub fn key(keyfile: &PathBuf) -> Result<(), String> {
+pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>) -> Result<(), String> {
     
     if !keyfile.exists() {
         return Err(format!("No such file: {}", keyfile.display()));
