@@ -1,9 +1,10 @@
 use std::path::PathBuf;
 use std::fs;
 
-use rsa::pkcs1::DecodeRsaPrivateKey;
-use rsa::pkcs8::DecodePrivateKey;
-use rsa::RsaPrivateKey;
+use colored::Colorize;
+use rsa::pkcs1::{DecodeRsaPrivateKey, EncodeRsaPublicKey};
+use rsa::pkcs8::{DecodePrivateKey, LineEnding};
+use rsa::{RsaPrivateKey, RsaPublicKey};
 use rsa::traits::PrivateKeyParts;
 
 /// Parse the PEM content from PKCS1 or PKCS8 into an `RsaPrivateKey`
@@ -45,13 +46,33 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>) -> Result<(), String> {
     if !keyfile.exists() {
         return Err(format!("No such file: {}", keyfile.display()));
     }
-
+    
     let private_key = read_private_key(keyfile)?;
 
+    // Export public key file
+    if let Some(pubkey_path) = pubout {
+        return export_pubkey(pubkey_path, private_key)
+    }
+    
     println!("primes:");
     for prime in private_key.primes() {
         println!("{}", prime);
     }
+
+    Ok(())
+}
+
+fn export_pubkey(pubkey_path: &PathBuf, private_key: RsaPrivateKey) -> Result<(), String> {
+    let pubkey = RsaPublicKey::from(&private_key);
+
+    // write the public key to `pubkey_path`
+    pubkey
+        .write_pkcs1_pem_file(pubkey_path.clone(), LineEnding::default())
+        .map_err(|_| format!("Failed to write private key to {}", pubkey_path.display()))?;
+
+    eprintln!("Public key written to {}", 
+        format!("{}", pubkey_path.display())
+        .yellow().bold());
 
     Ok(())
 }

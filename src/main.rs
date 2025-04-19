@@ -49,6 +49,7 @@ enum Commands {
         keyfile: PathBuf,
 
         /// Write the public key to this file
+        #[arg(short, long)]
         pubout: Option<PathBuf>,
     },
 }
