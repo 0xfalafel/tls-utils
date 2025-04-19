@@ -27,7 +27,17 @@ pub fn newcert(domain: &str, keyfile: &Option<PathBuf>) -> Result<(), String> {
 
     eprintln!("{}", format!("Certificate written to {}", cert_file).yellow());
 
-    println!("{}", key_pair.serialize_pem());
+    if keyfile.is_none() {
+        let key_file = domain.to_string() + ".key";
+
+        let mut key_pem = File::create(key_file.clone())
+            .map_err(|_| format!("Failed to create file {}", key_file))?;
+
+        key_pem.write_all(key_pair.serialize_pem().as_bytes())
+            .map_err(|_| format!("Failed to write to {}", key_file))?;
+
+        eprintln!("{}", format!("Key written to {}", key_file).yellow());
+    }
 
     Ok(())
 }
