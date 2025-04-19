@@ -1,4 +1,7 @@
+use std::io::Write;
 use std::{fs, path::PathBuf};
+use std::fs::File;
+use colored::Colorize;
 use rcgen::{CertificateParams, KeyPair};
 
 /// Generate a new Certificate using an existing RSA private key
@@ -12,9 +15,18 @@ pub fn newcert(domain: &str, keyfile: &Option<PathBuf>) -> Result<(), String> {
         .map_err(|_| "Failed to initalize the certificate")?;
 
     let cert = cert_params.self_signed(&key_pair)
-        .map_err(|_| "Failed to generate certificate")?;
+        .map_err(|_| "Failed to generate certificate")?;    
 
-    println!("{}", cert.pem());
+    let cert_file = domain.to_owned() + ".crt";
+
+    let mut crt = File::create(cert_file.clone())
+        .map_err(|_| format!("Failed to create file {}", cert_file))?;
+
+    crt.write_all(cert.pem().as_bytes())
+        .map_err(|_| format!("Failed to write to {}", cert_file))?;
+
+    eprintln!("{}", format!("Certificate written to {}", cert_file).yellow());
+
     println!("{}", key_pair.serialize_pem());
 
     Ok(())
@@ -32,7 +44,8 @@ fn get_keypair(keyfile: &Option<PathBuf>) -> Result<KeyPair, String>{
         Ok(key)
         
     } else {
-        let key = KeyPair::generate().map_err(|_| "Failed to generate private key")?;
+        let key = KeyPair::generate()
+            .map_err(|_| "Failed to generate private key")?;
         Ok(key)
     }
 }
