@@ -4,10 +4,12 @@ use colored::Colorize;
 
 mod newkey;
 mod key;
+mod newcert;
 mod util;
 
 use newkey::newkey;
 use key::key;
+use newcert::newcert;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -56,30 +58,33 @@ enum Commands {
         #[arg(short, long)]
         der: bool,
     },
+
+    /// Create a new certificate
+    NewCert {
+         /// Private key
+         key: PathBuf,
+    },
 }
 
 fn main() {
     let cli = Cli::parse();
 
-    match &cli.command {
+    let res = match &cli.command {
         Commands::NewKey { 
             output, outpub, size, der, pkcs8, 
-        } => {
-            
-            let res = newkey(
-                output, outpub, size, der, pkcs8
-            );
-            
-            if let Err(error_msg) = res {
-                eprintln!("{}", error_msg.red());
-            }
-        },
-        Commands::Key { keyfile , pubout, der } => {
-            let res = key(keyfile, pubout, *der);
-
-            if let Err(error_msg) = res {
-                eprintln!("{}", error_msg.red());
-            }
         }
+        =>  newkey(output, outpub, size, der, pkcs8),
+        
+        Commands::Key { keyfile , pubout, der } => {
+            key(keyfile, pubout, *der)
+        },
+
+        Commands::NewCert { key } => {
+            newcert(key)
+        },
+    };
+
+    if let Err(error_msg) = res {
+        eprintln!("{}", error_msg.red());
     }
 }
