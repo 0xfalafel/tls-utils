@@ -10,4 +10,5 @@ path = "src/main.rs"
 [dependencies]
 clap = { version = "4.5.31", features = ["derive"] }
 colored = "3.0.0"
+rcgen = "0.13.2"
 rsa = "0.9.8"

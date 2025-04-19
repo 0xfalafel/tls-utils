@@ -63,6 +63,9 @@ enum Commands {
     NewCert {
          /// Private key
          key: PathBuf,
+
+         /// Domain
+         domain: String,
     },
 }
 
@@ -79,8 +82,8 @@ fn main() {
             key(keyfile, pubout, *der)
         },
 
-        Commands::NewCert { key } => {
-            newcert(key)
+        Commands::NewCert { key, domain } => {
+            newcert(key, domain)
         },
     };
 

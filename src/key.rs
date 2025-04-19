@@ -21,7 +21,7 @@ fn parse_private_key_der(file_content: &[u8]) -> Result<RsaPrivateKey, String> {
         .map_err(|_| "Failed to parse DER content".to_owned())
 }
 
-fn read_private_key(file: &PathBuf) -> Result<RsaPrivateKey, String> {
+pub fn read_private_key(file: &PathBuf) -> Result<RsaPrivateKey, String> {
 
     let file_content = fs::read(file)
         .map_err(|_| format!("Failed to read the content of {}", file.display()))?;
