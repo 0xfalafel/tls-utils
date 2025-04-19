@@ -41,7 +41,7 @@ fn read_private_key(file: &PathBuf) -> Result<RsaPrivateKey, String> {
 }
 
 /// Inspect the content of a key
-pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>) -> Result<(), String> {
+pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>, der: bool) -> Result<(), String> {
     
     if !keyfile.exists() {
         return Err(format!("No such file: {}", keyfile.display()));
@@ -51,7 +51,7 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>) -> Result<(), String> {
 
     // Export public key file
     if let Some(pubkey_path) = pubout {
-        return export_pubkey(pubkey_path, private_key)
+        return export_pubkey(pubkey_path, private_key, der)
     }
     
     println!("primes:");
@@ -62,12 +62,14 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>) -> Result<(), String> {
     Ok(())
 }
 
-fn export_pubkey(pubkey_path: &PathBuf, private_key: RsaPrivateKey) -> Result<(), String> {
+fn export_pubkey(pubkey_path: &PathBuf, private_key: RsaPrivateKey, der: bool) -> Result<(), String> {
     let pubkey = RsaPublicKey::from(&private_key);
 
     // write the public key to `pubkey_path`
-    pubkey
-        .write_pkcs1_pem_file(pubkey_path.clone(), LineEnding::default())
+    match der {
+        false => pubkey.write_pkcs1_pem_file(pubkey_path, LineEnding::default()),
+        true  => pubkey.write_pkcs1_der_file(pubkey_path),
+    }
         .map_err(|_| format!("Failed to write private key to {}", pubkey_path.display()))?;
 
     eprintln!("Public key written to {}", 

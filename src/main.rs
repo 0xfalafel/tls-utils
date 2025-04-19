@@ -51,6 +51,10 @@ enum Commands {
         /// Write the public key to this file
         #[arg(short, long)]
         pubout: Option<PathBuf>,
+
+        /// Write the public key in DER format
+        #[arg(short, long)]
+        der: bool,
     },
 }
 
@@ -70,8 +74,8 @@ fn main() {
                 eprintln!("{}", error_msg.red());
             }
         },
-        Commands::Key { keyfile , pubout} => {
-            let res = key(keyfile, pubout);
+        Commands::Key { keyfile , pubout, der } => {
+            let res = key(keyfile, pubout, *der);
 
             if let Err(error_msg) = res {
                 eprintln!("{}", error_msg.red());
