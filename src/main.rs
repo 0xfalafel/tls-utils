@@ -61,11 +61,12 @@ enum Commands {
 
     /// Create a new certificate
     NewCert {
-         /// Private key
-         key: PathBuf,
-
-         /// Domain
-         domain: String,
+        /// Domain
+        domain: String,
+        
+        /// Private key
+        #[arg(short, long)]
+        key: Option<PathBuf>,
     },
 }
 
@@ -75,15 +76,14 @@ fn main() {
     let res = match &cli.command {
         Commands::NewKey { 
             output, outpub, size, der, pkcs8, 
-        }
-        =>  newkey(output, outpub, size, der, pkcs8),
+        } =>  newkey(output, outpub, size, der, pkcs8),
         
         Commands::Key { keyfile , pubout, der } => {
             key(keyfile, pubout, *der)
         },
 
         Commands::NewCert { key, domain } => {
-            newcert(key, domain)
+            newcert(domain, key)
         },
     };
 
