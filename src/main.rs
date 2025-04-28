@@ -25,8 +25,8 @@ enum Commands {
     /// generate a new asymetric key (i.e RSA)
     NewKey {
         /// write the private key to this file
-        #[arg(short, long, value_name = "PRIVATE KEY")]
-        output: Option<PathBuf>,
+        #[arg(value_name = "PRIVATE KEY")]
+        output: PathBuf,
 
         /// write the public key to this file
         #[arg(short='p', long, value_name = "PUBLIC KEY")]
