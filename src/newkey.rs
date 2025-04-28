@@ -13,7 +13,7 @@ use rsa::pkcs8::EncodePrivateKey;
 use crate::util::loading_animation;
 
 /// Generate a new private key
-pub fn newkey(output: &Option<PathBuf>, outpub: &Option<PathBuf>,size: &Option<u16>, der: &bool, pkcs8: &bool) -> Result<(), String> {
+pub fn newkey(privkey_file: &PathBuf, outpub: &Option<PathBuf>,size: &Option<u16>, der: &bool, pkcs8: &bool) -> Result<(), String> {
 
     let size: u16 = match *size {
         Some(s) if 512 | 1024 | 2048 | 4096 == s => s,
@@ -39,11 +39,6 @@ pub fn newkey(output: &Option<PathBuf>, outpub: &Option<PathBuf>,size: &Option<u
     // end the animation
     run_animation.store(false, Ordering::Relaxed);
     let _ = animation.join();
-
-    let privkey_file = match output {
-        Some(path) => path.clone(),
-        None => return Err("An output file is required to store the private key".to_string()),
-    };
 
     // write the private key to `privkey_file`
     write_private_key(&priv_key, &privkey_file, *pkcs8, *der)?;
