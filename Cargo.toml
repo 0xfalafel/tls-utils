@@ -8,7 +8,7 @@ name = "tls"
 path = "src/main.rs"
 
 [dependencies]
-clap = { version = "4.5.31", features = ["derive"] }
+clap = { version = "4.5.40", features = ["derive"] }
 colored = "3.0.0"
-rcgen = "0.13.2"
+rcgen = { version = "0.13.2", features = ["aws_lc_rs"] }
 rsa = "0.9.8"
