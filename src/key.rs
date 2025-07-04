@@ -5,7 +5,9 @@ use colored::Colorize;
 use rsa::pkcs1::{DecodeRsaPrivateKey, EncodeRsaPublicKey};
 use rsa::pkcs8::{DecodePrivateKey, LineEnding};
 use rsa::{RsaPrivateKey, RsaPublicKey};
-use rsa::traits::PrivateKeyParts;
+use rsa::traits::PublicKeyParts;
+use rsa::BigUint;
+// use num_bigint::BigUint;
 
 /// Parse the PEM content from PKCS1 or PKCS8 into an `RsaPrivateKey`
 fn parse_private_key_pem(file_content: &str) -> Result<RsaPrivateKey, String> {
@@ -54,10 +56,12 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>, der: bool) -> Result<(),
         return export_pubkey(pubkey_path, private_key, der)
     }
     
-    println!("primes:");
-    for prime in private_key.primes() {
-        println!("{}", prime);
-    }
+    print_modulus(&private_key);
+
+    // println!("primes:");
+    // for prime in private_key.primes() {
+    //     println!("{}", prime);
+    // }
 
     Ok(())
 }
@@ -78,3 +82,32 @@ fn export_pubkey(pubkey_path: &PathBuf, private_key: RsaPrivateKey, der: bool) -
 
     Ok(())
 }
+
+fn print_modulus(private_key: &RsaPrivateKey) {
+    let modulus = private_key.n();
+    // println!("modulus:\n{}", modulus);
+   
+    let hex_modulus = format_hex(modulus);
+    println!("modulus:\n{hex_modulus}\n\n");
+}
+
+fn format_hex(number: &BigUint) -> String {
+    // print the number as hex in a string
+    let hex_number = format!("{:x}", number);
+
+    // group by hex
+    let bytes: Vec<&str> = hex_number.as_bytes()
+        .chunks(2)
+        .map(|byte| str::from_utf8(byte).unwrap())
+        .collect();
+
+    // Group the hex by line of 15
+    bytes
+        .chunks(15)
+        .map(|chunk| chunk.join(":"))
+        .collect::<Vec<String>>()
+        .into_iter()
+        .map(|chunk| format!("    {chunk}"))
+        .collect::<Vec<String>>()
+        .join(":\n")
+}   
