@@ -85,10 +85,9 @@ fn export_pubkey(pubkey_path: &PathBuf, private_key: RsaPrivateKey, der: bool) -
 
 fn print_modulus(private_key: &RsaPrivateKey) {
     let modulus = private_key.n();
-    // println!("modulus:\n{}", modulus);
    
     let hex_modulus = format_hex(modulus);
-    println!("modulus:\n{hex_modulus}\n\n");
+    println!("{}\n{}\n\n", "modulus (n):".blue().bold(), hex_modulus);
 }
 
 fn format_hex(number: &BigUint) -> String {
