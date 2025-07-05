@@ -111,13 +111,7 @@ fn print_primes(private_key: &RsaPrivateKey) {
 
 fn format_hex(number: &BigUint) -> String {
     // print the number as hex in a string
-    let formated_hex= format!("{:x}", number);
-
-    let hex_number = match formated_hex.len() % 2 {
-        0 => formated_hex,
-        1 => format!("0{}", formated_hex),
-        2_usize.. => unreachable!(),
-    };
+    let hex_number= format!("{:0258x}", number);
 
     // group by hex
     let bytes: Vec<&str> = hex_number.as_bytes()
@@ -127,7 +121,7 @@ fn format_hex(number: &BigUint) -> String {
 
     // Group the hex by line of 15
     bytes
-        .chunks(14)
+        .chunks(15)
         .map(|chunk| chunk.join(":"))
         .collect::<Vec<String>>()
         .into_iter()
