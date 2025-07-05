@@ -59,11 +59,7 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>, der: bool) -> Result<(),
     print_modulus(&private_key);
     print_public_exponent(&private_key);
     print_private_exponent(&private_key);
-
-    // println!("primes:");
-    // for prime in private_key.primes() {
-    //     println!("{}", prime);
-    // }
+    print_primes(&private_key);
 
     Ok(())
 }
@@ -102,6 +98,17 @@ fn print_private_exponent(private_key: &RsaPrivateKey) {
     println!("{}\n{}\n", "private exponent (d):".blue().bold(), hex_modulus);
 }
 
+fn print_primes(private_key: &RsaPrivateKey) {
+    let primes = private_key.primes();
+    let p = primes.iter().nth(0).unwrap();
+    let q = primes.iter().nth(1).unwrap();
+
+    let p_hex = format_hex(p);
+    let q_hex = format_hex(q);
+    println!("{}\n{}\n", "prime1 (p):".blue().bold(), p_hex);
+    println!("{}\n{}\n", "prime2 (q):".blue().bold(), q_hex);
+}
+
 fn format_hex(number: &BigUint) -> String {
     // print the number as hex in a string
     let formated_hex= format!("{:x}", number);
@@ -120,7 +127,7 @@ fn format_hex(number: &BigUint) -> String {
 
     // Group the hex by line of 15
     bytes
-        .chunks(15)
+        .chunks(14)
         .map(|chunk| chunk.join(":"))
         .collect::<Vec<String>>()
         .into_iter()
