@@ -5,7 +5,7 @@ use colored::Colorize;
 use rsa::pkcs1::{DecodeRsaPrivateKey, EncodeRsaPublicKey};
 use rsa::pkcs8::{DecodePrivateKey, LineEnding};
 use rsa::{RsaPrivateKey, RsaPublicKey};
-use rsa::traits::PublicKeyParts;
+use rsa::traits::{PrivateKeyParts, PublicKeyParts};
 use rsa::BigUint;
 // use num_bigint::BigUint;
 
@@ -57,6 +57,8 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>, der: bool) -> Result<(),
     }
     
     print_modulus(&private_key);
+    print_public_exponent(&private_key);
+    print_private_exponent(&private_key);
 
     // println!("primes:");
     // for prime in private_key.primes() {
@@ -85,14 +87,30 @@ fn export_pubkey(pubkey_path: &PathBuf, private_key: RsaPrivateKey, der: bool) -
 
 fn print_modulus(private_key: &RsaPrivateKey) {
     let modulus = private_key.n();
-   
     let hex_modulus = format_hex(modulus);
-    println!("{}\n{}\n\n", "modulus (n):".blue().bold(), hex_modulus);
+    println!("{}\n{}\n", "modulus (n):".blue().bold(), hex_modulus);
+}
+
+fn print_public_exponent(private_key: &RsaPrivateKey) {
+    let exponent = private_key.e();
+    println!("{} {} (0x{:x})\n", "public exponent (e):".blue().bold(), exponent, exponent);
+}
+
+fn print_private_exponent(private_key: &RsaPrivateKey) {
+    let modulus = private_key.d();
+    let hex_modulus = format_hex(modulus);
+    println!("{}\n{}\n", "private exponent (d):".blue().bold(), hex_modulus);
 }
 
 fn format_hex(number: &BigUint) -> String {
     // print the number as hex in a string
-    let hex_number = format!("{:x}", number);
+    let formated_hex= format!("{:x}", number);
+
+    let hex_number = match formated_hex.len() % 2 {
+        0 => formated_hex,
+        1 => format!("0{}", formated_hex),
+        2_usize.. => unreachable!(),
+    };
 
     // group by hex
     let bytes: Vec<&str> = hex_number.as_bytes()
