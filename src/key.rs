@@ -49,7 +49,9 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>, der: bool) -> Result<(),
         return Err(format!("No such file: {}", keyfile.display()));
     }
     
-    let private_key = read_private_key(keyfile)?;
+    let mut private_key = read_private_key(keyfile)?;
+    // TODO: handle error, precompute can fail
+    private_key.precompute().expect("Failed to precompute private key values");
 
     // Export public key file
     if let Some(pubkey_path) = pubout {
@@ -60,6 +62,7 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>, der: bool) -> Result<(),
     print_public_exponent(&private_key);
     print_private_exponent(&private_key);
     print_primes(&private_key);
+    print_exponents(&private_key);
 
     Ok(())
 }
@@ -107,6 +110,16 @@ fn print_primes(private_key: &RsaPrivateKey) {
     let q_hex = format_hex(q);
     println!("{}\n{}\n", "prime1 (p):".blue().bold(), p_hex);
     println!("{}\n{}\n", "prime2 (q):".blue().bold(), q_hex);
+}
+
+fn print_exponents(private_key: &RsaPrivateKey) {
+    if let Some(dp) = private_key.dp() {
+        println!("{}\n{}\n", "exponent1 (dp):".blue().bold(), format_hex(dp));
+    }
+
+    if let Some(dq) = private_key.dq() {
+        println!("{}\n{}\n", "exponent2 (dq):".blue().bold(), format_hex(dq));
+    }
 }
 
 fn format_hex(number: &BigUint) -> String {
