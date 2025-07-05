@@ -63,6 +63,7 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>, der: bool) -> Result<(),
     print_private_exponent(&private_key);
     print_primes(&private_key);
     print_exponents(&private_key);
+    print_coefficient(&private_key);
 
     Ok(())
 }
@@ -119,6 +120,12 @@ fn print_exponents(private_key: &RsaPrivateKey) {
 
     if let Some(dq) = private_key.dq() {
         println!("{}\n{}\n", "exponent2 (dq):".blue().bold(), format_hex(dq));
+    }
+}
+
+fn print_coefficient(private_key: &RsaPrivateKey) {
+    if let Some(crt_coefficient) = private_key.crt_coefficient() {
+        println!("{}\n{}\n", "coefficient:".blue().bold(), format_hex(&crt_coefficient));
     }
 }
 
