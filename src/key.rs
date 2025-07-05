@@ -49,9 +49,21 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>, der: bool) -> Result<(),
         return Err(format!("No such file: {}", keyfile.display()));
     }
     
-    let mut private_key = read_private_key(keyfile)?;
+    let mut private_key: RsaPrivateKey = read_private_key(keyfile)?;
     // TODO: handle error, precompute can fail
     private_key.precompute().expect("Failed to precompute private key values");
+
+    let key_size = match private_key.n().bits() {
+        n if n <= 512 => 512,
+        n if n <= 1024 => 1024,
+        n if n <= 2048 => 2048,
+        _ => 4096
+    };
+
+    let msg = format!(
+        "Private-Key: ({} bit, {} primes)", key_size, private_key.primes().len()
+    );
+    println!("{}", msg.magenta().bold());
 
     // Export public key file
     if let Some(pubkey_path) = pubout {
