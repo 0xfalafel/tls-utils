@@ -5,11 +5,13 @@ use colored::Colorize;
 mod newkey;
 mod key;
 mod newcert;
+mod cert;
 mod util;
 
 use newkey::newkey;
 use key::key;
 use newcert::newcert;
+use cert::cert;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -68,6 +70,11 @@ enum Commands {
         #[arg(short, long)]
         key: Option<PathBuf>,
     },
+
+    /// Read a certificate
+    Cert {
+        certificate: PathBuf,
+    }
 }
 
 fn main() {
@@ -84,6 +91,9 @@ fn main() {
 
         Commands::NewCert { key, domain } => {
             newcert(domain, key)
+        },
+        Commands::Cert { certificate } => {
+            cert(certificate)
         },
     };
 
