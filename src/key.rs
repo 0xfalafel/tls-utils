@@ -137,7 +137,7 @@ fn print_exponents(private_key: &RsaPrivateKey) {
 
 fn print_coefficient(private_key: &RsaPrivateKey) {
     if let Some(crt_coefficient) = private_key.crt_coefficient() {
-        println!("{}\n{}\n", "coefficient:".blue().bold(), format_hex(&crt_coefficient));
+        println!("{}\n{}", "coefficient:".blue().bold(), format_hex(&crt_coefficient));
     }
 }
 
