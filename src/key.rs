@@ -148,7 +148,7 @@ fn format_hex(number: &BigUint) -> String {
     // group by hex
     let bytes: Vec<&str> = hex_number.as_bytes()
         .chunks(2)
-        .map(|byte| str::from_utf8(byte).unwrap())
+        .map(|byte| std::str::from_utf8(byte).unwrap())
         .collect();
 
     // Group the hex by line of 15
