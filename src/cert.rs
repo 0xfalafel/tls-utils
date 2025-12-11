@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use std::fs;
 use x509_parser::prelude::parse_x509_pem;
 
-/// Generate a new Certificate using an existing RSA private key
+/// Read a certificate data
 pub fn cert(cert_file: &PathBuf) -> Result<(), String> {
     
     let file_content = fs::read(cert_file)
