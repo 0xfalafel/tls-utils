@@ -9,6 +9,11 @@ use rsa::traits::{PrivateKeyParts, PublicKeyParts};
 use rsa::BigUint;
 // use num_bigint::BigUint;
 
+enum Key {
+    Public(RsaPublicKey),
+    Private(RsaPrivateKey),
+}
+
 /// Parse the PEM content from PKCS1 or PKCS8 into an `RsaPrivateKey`
 fn parse_private_key_pem(file_content: &str) -> Result<RsaPrivateKey, String> {
     RsaPrivateKey::from_pkcs1_pem(file_content)
@@ -23,14 +28,16 @@ fn parse_private_key_der(file_content: &[u8]) -> Result<RsaPrivateKey, String> {
         .map_err(|_| "Failed to parse DER content".to_owned())
 }
 
-pub fn read_private_key(file: &PathBuf) -> Result<RsaPrivateKey, String> {
+fn read_key(file: &PathBuf) -> Result<Key, String> {
 
     let file_content = fs::read(file)
         .map_err(|_| format!("Failed to read the content of {}", file.display()))?;
 
     match parse_private_key_der(&file_content) {
         Err(_err_msg) => {},
-        Ok(private_key) => {return Ok(private_key)},
+        Ok(private_key) => {
+            return Ok(Key::Private(private_key))
+        },
     }
 
     let file_content_utf8 = String::from_utf8(file_content)
@@ -39,7 +46,7 @@ pub fn read_private_key(file: &PathBuf) -> Result<RsaPrivateKey, String> {
     let private_key = parse_private_key_pem(&file_content_utf8)
         .map_err(|_| "Failed to parse private key")?;
 
-    Ok(private_key)
+    Ok(Key::Private(private_key))
 }
 
 /// Inspect the content of a key
@@ -49,33 +56,37 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>, der: bool) -> Result<(),
         return Err(format!("No such file: {}", keyfile.display()));
     }
     
-    let mut private_key: RsaPrivateKey = read_private_key(keyfile)?;
-    // TODO: handle error, precompute can fail
-    private_key.precompute().expect("Failed to precompute private key values");
+    let key: Key = read_key(keyfile)?;
 
-    let key_size: usize = match private_key.n().bits() {
-        n if n <= 512 => 512,
-        n if n <= 1024 => 1024,
-        n if n <= 2048 => 2048,
-        _ => 4096
-    };
+    if let Key::Private(mut private_key) = key {
+        // TODO: handle error, precompute can fail
+        private_key.precompute().expect("Failed to precompute private key values");
 
-    let msg = format!(
-        "Private-Key: ({} bit, {} primes)", key_size, private_key.primes().len()
-    );
-    println!("{}", msg.magenta().bold());
+        let key_size: usize = match private_key.n().bits() {
+            n if n <= 512 => 512,
+            n if n <= 1024 => 1024,
+            n if n <= 2048 => 2048,
+            _ => 4096
+        };
 
-    // Export public key file
-    if let Some(pubkey_path) = pubout {
-        return export_pubkey(pubkey_path, private_key, der)
+        let msg = format!(
+            "Private-Key: ({} bit, {} primes)", key_size, private_key.primes().len()
+        );
+        println!("{}", msg.magenta().bold());
+
+        // Export public key file
+        if let Some(pubkey_path) = pubout {
+            return export_pubkey(pubkey_path, private_key, der)
+        }
+        
+        print_modulus(&private_key, key_size);
+        print_public_exponent(&private_key);
+        print_private_exponent(&private_key, key_size);
+        print_primes(&private_key, key_size / 2);
+        print_exponents(&private_key);
+        print_coefficient(&private_key, key_size / 2);
+        
     }
-    
-    print_modulus(&private_key, key_size);
-    print_public_exponent(&private_key);
-    print_private_exponent(&private_key, key_size);
-    print_primes(&private_key, key_size / 2);
-    print_exponents(&private_key);
-    print_coefficient(&private_key, key_size / 2);
 
     Ok(())
 }
