@@ -13,7 +13,7 @@ use rsa::pkcs8::EncodePrivateKey;
 use crate::util::loading_animation;
 
 /// Generate a new private key
-pub fn newkey(privkey_file: &PathBuf, outpub: &Option<PathBuf>,size: &Option<u16>, der: &bool, pkcs8: &bool) -> Result<(), String> {
+pub fn newkey(privkey_file: &PathBuf, outpub: &Option<PathBuf>,size: &Option<u16>, der: &bool, pkcs8: &bool, kind: &Option<String>) -> Result<(), String> {
 
     let size: u16 = match *size {
         Some(s) if matches!(s, 512 | 1024 | 2048 | 4096) => s,

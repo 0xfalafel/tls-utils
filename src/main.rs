@@ -38,6 +38,10 @@ enum Commands {
         #[arg(short, long)]
         size: Option<u16>,
 
+        /// size of the key generated (512, 1024, 2048 or 4096). 
+        #[arg(short='t', long="type")]
+        kind: Option<String>,
+
         /// encode the key in DER format
         #[arg(short, long)]
         der: bool,        
@@ -82,8 +86,8 @@ fn main() {
 
     let res = match &cli.command {
         Commands::NewKey { 
-            output, outpub, size, der, pkcs8, 
-        } =>  newkey(output, outpub, size, der, pkcs8),
+            output, outpub, size, der, pkcs8, kind
+        } =>  newkey(output, outpub, size, der, pkcs8, kind),
         
         Commands::Key { keyfile , pubout, der } => {
             key(keyfile, pubout, *der)
