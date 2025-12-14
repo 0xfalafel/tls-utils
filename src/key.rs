@@ -42,10 +42,13 @@ fn parse_public_key_der(file_content: &[u8]) -> Result<RsaPublicKey, String> {
         .map_err(|_| "Failed to parse DER content".to_owned())
 }
 
+/// Read a key file (PEM or DER) and return a RsaPrivateKey or RsaPublicKey
 fn read_key(file: &PathBuf) -> Result<Key, String> {
 
     let file_content = fs::read(file)
         .map_err(|_| format!("Failed to read the content of {}", file.display()))?;
+
+    // Parsing DER file (PKCS1 or PKCS8)
 
     match parse_private_key_der(&file_content) {
         Err(_err_msg) => {},
@@ -61,6 +64,9 @@ fn read_key(file: &PathBuf) -> Result<Key, String> {
         },
     }
 
+    // Parsing PEM files
+
+    // PEM are ASCII, so decoding them as UTF-8 should work
     let file_content_utf8 = String::from_utf8(file_content)
         .map_err(|_| "Failed to decode file data")?;
 
