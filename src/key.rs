@@ -111,6 +111,7 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>, der: bool) -> Result<(),
 
     // Print info common on both private and public key
     print_modulus(&key);
+    print_public_exponent(&key);
 
     // Print private key informations
     if let Key::Private(ref mut private_key) = key {
@@ -122,16 +123,12 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>, der: bool) -> Result<(),
             return export_pubkey(pubkey_path, &private_key, der)
         }
         
-        print_public_exponent(&private_key);
+        print!("\n");
         print_private_exponent(&private_key);
         print_primes(&private_key);
         print_exponents(&private_key);
         print_coefficient(&private_key);
         
-    }
-
-    if let Key::Public(_public_key) = key {
-        println!("This is a public key !");
     }
 
     Ok(())
@@ -164,9 +161,13 @@ fn print_modulus(key: &Key) {
     println!("{}\n{}\n", "modulus (n):".blue().bold(), hex_modulus);
 }
 
-fn print_public_exponent(private_key: &RsaPrivateKey) {
-    let exponent = private_key.e();
-    println!("{} {} (0x{:x})\n", "public exponent (e):".blue().bold(), exponent, exponent);
+fn print_public_exponent(key: &Key) {
+    let exponent = match key {
+        Key::Public(key) => key.e(),
+        Key::Private(key) => key.e(),
+    };
+
+    println!("{} {} (0x{:x})", "public exponent (e):".blue().bold(), exponent, exponent);
 }
 
 fn print_private_exponent(private_key: &RsaPrivateKey) {
