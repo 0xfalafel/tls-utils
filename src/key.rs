@@ -92,21 +92,34 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>, der: bool) -> Result<(),
     
     let mut key: Key = read_key(keyfile)?;
 
+    // Print info about the key
+
+    let n = match &key {
+        Key::Private(private_key) => private_key.n().bits(),
+        Key::Public(public_key) => public_key.n().bits(),
+    };
+
+    let key_size: usize = match n {
+        n if n <= 512 => 512,
+        n if n <= 1024 => 1024,
+        n if n <= 2048 => 2048,
+        _ => 4096
+    };
+
+    let msg = match &key {
+        Key::Private(private_key) => format!(
+            "Private-Key: ({} bit, {} primes)", key_size, private_key.primes().len()
+        ),
+        Key::Public(_) => format!(
+            "Public-Key: ({} bit)", key_size
+        ),
+    };
+    println!("{}", msg.magenta().bold());
+
+
     if let Key::Private(ref mut private_key) = key {
         // TODO: handle error, precompute can fail
         private_key.precompute().expect("Failed to precompute private key values");
-
-        let key_size: usize = match private_key.n().bits() {
-            n if n <= 512 => 512,
-            n if n <= 1024 => 1024,
-            n if n <= 2048 => 2048,
-            _ => 4096
-        };
-
-        let msg = format!(
-            "Private-Key: ({} bit, {} primes)", key_size, private_key.primes().len()
-        );
-        println!("{}", msg.magenta().bold());
 
         // Export public key file
         if let Some(pubkey_path) = pubout {
