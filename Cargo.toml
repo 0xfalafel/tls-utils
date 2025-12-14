@@ -11,5 +11,5 @@ path = "src/main.rs"
 clap = { version = "4.5.53", features = ["derive"] }
 colored = "3.0.0"
 rcgen = { version = "0.14.6", features = ["aws_lc_rs"] }
-rsa = "0.9.8"
+rsa = "0.9.9"
 x509-parser = "0.18.0"
