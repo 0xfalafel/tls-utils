@@ -94,16 +94,9 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>, der: bool) -> Result<(),
 
     // Print info about the key
 
-    let n = match &key {
+    let key_size = match &key {
         Key::Private(private_key) => private_key.n().bits(),
         Key::Public(public_key) => public_key.n().bits(),
-    };
-
-    let key_size: usize = match n {
-        n if n <= 512 => 512,
-        n if n <= 1024 => 1024,
-        n if n <= 2048 => 2048,
-        _ => 4096
     };
 
     let msg = match &key {
@@ -116,7 +109,7 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>, der: bool) -> Result<(),
     };
     println!("{}", msg.magenta().bold());
 
-
+    // Print private key informations
     if let Key::Private(ref mut private_key) = key {
         // TODO: handle error, precompute can fail
         private_key.precompute().expect("Failed to precompute private key values");
