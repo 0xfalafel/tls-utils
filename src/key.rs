@@ -2,8 +2,8 @@ use std::path::PathBuf;
 use std::fs;
 
 use colored::Colorize;
-use rsa::pkcs1::{DecodeRsaPrivateKey, EncodeRsaPublicKey};
-use rsa::pkcs8::{DecodePrivateKey, LineEnding};
+use rsa::pkcs1::{DecodeRsaPrivateKey, DecodeRsaPublicKey, EncodeRsaPublicKey};
+use rsa::pkcs8::{DecodePrivateKey, DecodePublicKey, LineEnding};
 use rsa::{RsaPrivateKey, RsaPublicKey};
 use rsa::traits::{PrivateKeyParts, PublicKeyParts};
 use rsa::BigUint;
@@ -21,10 +21,24 @@ fn parse_private_key_pem(file_content: &str) -> Result<RsaPrivateKey, String> {
         .map_err(|_| "Failed to parse PEM content".to_owned())
 }
 
+/// Parse the PEM content from PKCS1 or PKCS8 into an `RsaPublicKey`
+fn parse_public_key_pem(file_content: &str) -> Result<RsaPublicKey, String> {
+    RsaPublicKey::from_pkcs1_pem(file_content)
+        .or_else(|_| RsaPublicKey::from_public_key_pem(file_content)) // pkcs8 ?
+        .map_err(|_| "Failed to parse PEM content".to_owned())
+}
+
 /// Parse the DER content from PKCS1 or PKCS8 into an `RsaPrivateKey`
 fn parse_private_key_der(file_content: &[u8]) -> Result<RsaPrivateKey, String> {
     RsaPrivateKey::from_pkcs1_der(file_content)
         .or_else(|_| RsaPrivateKey::from_pkcs8_der(file_content))
+        .map_err(|_| "Failed to parse DER content".to_owned())
+}
+
+/// Parse the DER content from PKCS1 or PKCS8 into an `RsaPublicKey`
+fn parse_public_key_der(file_content: &[u8]) -> Result<RsaPublicKey, String> {
+    RsaPublicKey::from_pkcs1_der(file_content)
+        .or_else(|_| RsaPublicKey::from_public_key_der(file_content))
         .map_err(|_| "Failed to parse DER content".to_owned())
 }
 
@@ -40,13 +54,27 @@ fn read_key(file: &PathBuf) -> Result<Key, String> {
         },
     }
 
+    match parse_public_key_der(&file_content) {
+        Err(_err_msg) => {},
+        Ok(public_key) => {
+            return Ok(Key::Public(public_key))
+        },
+    }
+
     let file_content_utf8 = String::from_utf8(file_content)
         .map_err(|_| "Failed to decode file data")?;
 
-    let private_key = parse_private_key_pem(&file_content_utf8)
-        .map_err(|_| "Failed to parse private key")?;
+    match parse_private_key_pem(&file_content_utf8) {
+        Ok(private_key) => return Ok(Key::Private(private_key)),
+        Err(_) => {}
+    }
 
-    Ok(Key::Private(private_key))
+    match parse_public_key_pem(&file_content_utf8) {
+        Ok(public_key) => return Ok(Key::Public(public_key)),
+        Err(_) => {},
+    }
+
+    Err(format!("Failed to parse the content of {}", file.display()).to_string())
 }
 
 /// Inspect the content of a key
@@ -56,9 +84,9 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>, der: bool) -> Result<(),
         return Err(format!("No such file: {}", keyfile.display()));
     }
     
-    let key: Key = read_key(keyfile)?;
+    let mut key: Key = read_key(keyfile)?;
 
-    if let Key::Private(mut private_key) = key {
+    if let Key::Private(ref mut private_key) = key {
         // TODO: handle error, precompute can fail
         private_key.precompute().expect("Failed to precompute private key values");
 
@@ -76,7 +104,7 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>, der: bool) -> Result<(),
 
         // Export public key file
         if let Some(pubkey_path) = pubout {
-            return export_pubkey(pubkey_path, private_key, der)
+            return export_pubkey(pubkey_path, &private_key, der)
         }
         
         print_modulus(&private_key, key_size);
@@ -88,11 +116,15 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>, der: bool) -> Result<(),
         
     }
 
+    if let Key::Public(_public_key) = key {
+        println!("This is a public key !");
+    }
+
     Ok(())
 }
 
-fn export_pubkey(pubkey_path: &PathBuf, private_key: RsaPrivateKey, der: bool) -> Result<(), String> {
-    let pubkey = RsaPublicKey::from(&private_key);
+fn export_pubkey(pubkey_path: &PathBuf, private_key: &RsaPrivateKey, der: bool) -> Result<(), String> {
+    let pubkey = RsaPublicKey::from(private_key);
 
     // write the public key to `pubkey_path`
     match der {
