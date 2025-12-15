@@ -4,6 +4,9 @@ use colored::Colorize;
 use x509_parser::prelude::parse_x509_pem;
 use x509_parser::num_bigint::BigUint;
 
+// Take the OID list from here:
+// https://learn.microsoft.com/fr-fr/windows/win32/api/wincrypt/ns-wincrypt-crypt_algorithm_identifier
+
 /// Read a certificate data
 pub fn cert(cert_file: &PathBuf) -> Result<(), String> {
     
@@ -12,9 +15,9 @@ pub fn cert(cert_file: &PathBuf) -> Result<(), String> {
 
     if let Ok((_remaining_bytes, pem_certificate)) = parse_x509_pem(&file_content) {
         if let Ok(certificate) = pem_certificate.parse_x509() {
-            println!("{} {}", "Version:".blue().bold(), certificate.version());
-            
+            println!("{} {}", "Version:".blue().bold(), certificate.version());           
             println!("{}\n\t{}", "Serial number:".blue().bold(), format_hex(&certificate.serial));
+            println!("{} {:?}", "Signature Algorithm:".blue().bold(), certificate.signature_algorithm)
 
         }
     }        
