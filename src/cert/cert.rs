@@ -8,7 +8,7 @@ use x509_parser::num_bigint::BigUint;
 // https://learn.microsoft.com/fr-fr/windows/win32/api/wincrypt/ns-wincrypt-crypt_algorithm_identifier
 
 /// Read a certificate data
-pub fn cert(cert_file: &PathBuf) -> Result<(), String> {
+pub fn read_certificate(cert_file: &PathBuf) -> Result<(), String> {
     
     let file_content = fs::read(cert_file)
         .map_err(|_| format!("Failed to read the content of {}", cert_file.display()))?;
