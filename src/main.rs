@@ -11,7 +11,7 @@ mod util;
 use newkey::newkey;
 use key::key;
 use newcert::newcert;
-use cert::cert;
+use cert::cert::read_certificate;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -97,7 +97,7 @@ fn main() {
             newcert(domain, key)
         },
         Commands::Cert { certificate } => {
-            cert(certificate)
+            read_certificate(certificate)
         },
     };
 
