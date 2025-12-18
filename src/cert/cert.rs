@@ -3,6 +3,7 @@ use std::fs;
 use colored::Colorize;
 use x509_parser::prelude::parse_x509_pem;
 use x509_parser::num_bigint::BigUint;
+use asn1_rs::{oid, Oid};
 
 // Take the OID list from here:
 // https://learn.microsoft.com/fr-fr/windows/win32/api/wincrypt/ns-wincrypt-crypt_algorithm_identifier
@@ -17,8 +18,11 @@ pub fn read_certificate(cert_file: &PathBuf) -> Result<(), String> {
         if let Ok(certificate) = pem_certificate.parse_x509() {
             println!("{} {}", "Version:".blue().bold(), certificate.version());           
             println!("{}\n\t{}", "Serial number:".blue().bold(), format_hex(&certificate.serial));
-            println!("{} {:?}", "Signature Algorithm:".blue().bold(), certificate.signature_algorithm)
+            println!("{} {:?}", "Signature Algorithm:".blue().bold(), certificate.signature_algorithm);
 
+            if certificate.signature_algorithm.algorithm == oid! {1.2.840.113549.1.1.11} {
+                println!("{} {}", "Signature Algorithm:".blue().bold(), "sha256WithRSAEncryption");
+            }
         }
     }        
 
