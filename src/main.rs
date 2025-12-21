@@ -11,7 +11,7 @@ mod util;
 use newkey::newkey;
 use key::key;
 use newcert::newcert;
-use cert::cert::read_certificate;
+use cert::read_certificate;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
