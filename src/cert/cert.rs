@@ -3,7 +3,6 @@ use std::fs;
 use colored::Colorize;
 use x509_parser::prelude::parse_x509_pem;
 use x509_parser::num_bigint::BigUint;
-use asn1_rs::{oid, Oid};
 
 // Take the OID list from here:
 // https://learn.microsoft.com/fr-fr/windows/win32/api/wincrypt/ns-wincrypt-crypt_algorithm_identifier
