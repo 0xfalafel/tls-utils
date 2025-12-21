@@ -41,8 +41,9 @@ pub fn read_certificate(cert_file: &PathBuf) -> Result<(), String> {
 
                 other => other.to_string(),
             };
-            
             println!("{} {}", "Signature Algorithm:".blue().bold(), algorithm);
+
+            println!("{} {}", "Issuer:".blue().bold(), certificate.issuer.to_string().yellow().bold());
         }
     }        
 
