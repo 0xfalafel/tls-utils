@@ -15,8 +15,9 @@ pub fn read_certificate(cert_file: &PathBuf) -> Result<(), String> {
 
     if let Ok((_remaining_bytes, pem_certificate)) = parse_x509_pem(&file_content) {
         if let Ok(certificate) = pem_certificate.parse_x509() {
-            println!("{} {}", "Version:".blue().bold(), certificate.version());           
-            println!("{}\n\t{}", "Serial number:".blue().bold(), format_hex(&certificate.serial));
+            println!("{}", "Certificate (x509):".magenta().bold());
+            println!("    {} {}", "Version:".blue().bold(), certificate.version().to_string().to_lowercase());           
+            println!("    {}\n\t{}", "Serial number:".blue().bold(), format_hex(&certificate.serial));
 
             let algorithm = match certificate.signature_algorithm.algorithm.to_id_string().as_ref() {
                 "1.2.840.113549.1.1.4"   => "md5WithRSAEncryption".to_string(),
@@ -41,17 +42,19 @@ pub fn read_certificate(cert_file: &PathBuf) -> Result<(), String> {
 
                 other => other.to_string(),
             };
-            println!("{} {}", "Signature Algorithm:".blue().bold(), algorithm);
+            println!("    {} {}", "Signature Algorithm:".blue().bold(), algorithm);
 
-            println!("{} {}", "Issuer:".blue().bold(), certificate.issuer.to_string().yellow().bold());
+            println!("    {} {}", "Issuer:".blue().bold(), certificate.issuer.to_string().yellow().bold());
 
-            println!("{}", "Validity:".blue().bold());
+            println!("    {}", "Validity:".blue().bold());
             match certificate.validity.is_valid() {
-                true  => println!("\t{}", "Certificate is valid".green().bold()),
-                false => println!("\t{}", "Certificate is expired".red().bold()),
+                true  => println!("    \t{}", "Certificate is valid".green().bold()),
+                false => println!("    \t{}", "Certificate is expired".red().bold()),
             };
-            println!("\t{} {}", "Not Before:".blue().bold(), certificate.validity.not_before);
-            println!("\t{} {}", "Not After:".blue().bold(), certificate.validity.not_after);
+            println!("    \t{} {}", "Not Before:".blue().bold(), certificate.validity.not_before);
+            println!("    \t{} {}", "Not After:".blue().bold(), certificate.validity.not_after);
+
+            println!("    {} {}", "Subject:".blue().bold(), certificate.subject.to_string().yellow().bold());
 
         }
     }        
