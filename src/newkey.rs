@@ -14,7 +14,14 @@ use crate::util::loading_animation;
 
 /// Generate a new private key
 pub fn newkey(privkey_file: &PathBuf, outpub: &Option<PathBuf>,size: &Option<u16>, der: &bool, pkcs8: &bool, kind: &Option<String>) -> Result<(), String> {
+    match kind {
+        Some(s) if s == "ecc" => todo!(),
+        _ => new_rsa_key(privkey_file, outpub, size, der, pkcs8)
+    }
+}
 
+/// Generate a new rsa private key
+pub fn new_rsa_key(privkey_file: &PathBuf, outpub: &Option<PathBuf>,size: &Option<u16>, der: &bool, pkcs8: &bool) -> Result<(), String> {
     let size: u16 = match *size {
         Some(s) if matches!(s, 512 | 1024 | 2048 | 4096) => s,
         None => 2048,

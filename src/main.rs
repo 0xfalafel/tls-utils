@@ -38,7 +38,7 @@ enum Commands {
         #[arg(short, long)]
         size: Option<u16>,
 
-        /// size of the key generated (512, 1024, 2048 or 4096). 
+        /// type of key to generate (rsa, ecc). Default is rsa. 
         #[arg(short='t', long="type")]
         kind: Option<String>,
 
