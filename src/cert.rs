@@ -44,6 +44,15 @@ pub fn read_certificate(cert_file: &PathBuf) -> Result<(), String> {
             println!("{} {}", "Signature Algorithm:".blue().bold(), algorithm);
 
             println!("{} {}", "Issuer:".blue().bold(), certificate.issuer.to_string().yellow().bold());
+
+            println!("{}", "Validity:".blue().bold());
+            match certificate.validity.is_valid() {
+                true  => println!("\t{}", "Certificate is valid".green().bold()),
+                false => println!("\t{}", "Certificate is expired".red().bold()),
+            };
+            println!("\t{} {}", "Not Before:".blue().bold(), certificate.validity.not_before);
+            println!("\t{} {}", "Not After:".blue().bold(), certificate.validity.not_after);
+
         }
     }        
 
