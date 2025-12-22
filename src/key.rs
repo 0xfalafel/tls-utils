@@ -215,7 +215,7 @@ fn format_hex(number: &BigUint) -> String {
     let hex= format!("{:0>n_chars$x}", number);
 
     // format it in openssl style
-    let mut result = String::new();
+    let mut result = String::from("    ");
     for (i, chunk) in hex.as_bytes().chunks(2).enumerate() {
         let byte = std::str::from_utf8(chunk).unwrap();
         result.push_str(byte);
@@ -225,7 +225,7 @@ fn format_hex(number: &BigUint) -> String {
         }
         // Add a newline after every 15 bytes
         if (i + 1) % 15 == 0 {
-            result.push('\n');
+            result.push_str("\n    ");
         }
     }
     result
