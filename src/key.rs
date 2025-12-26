@@ -91,7 +91,19 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>, der: bool) -> Result<(),
     }
     
     let mut key: Key = read_key(keyfile)?;
+    println!("{}", format_key(&mut key));
 
+    if let Key::Private(ref mut private_key) = key {
+        // Export public key file
+        if let Some(pubkey_path) = pubout {
+            return export_pubkey(pubkey_path, &private_key, der)
+        }
+    }
+
+    Ok(())
+}
+
+fn format_key(key: &mut Key) -> String {
     // Print info about the key
 
     let key_size = match &key {
@@ -101,37 +113,36 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>, der: bool) -> Result<(),
 
     let msg = match &key {
         Key::Private(private_key) => format!(
-            "Private-Key: ({} bit, {} primes)", key_size, private_key.primes().len()
+            "Private-Key: ({} bit, {} primes)\n", key_size, private_key.primes().len()
         ),
         Key::Public(_) => format!(
-            "Public-Key: ({} bit)", key_size
+            "Public-Key: ({} bit)\n", key_size
         ),
     };
-    println!("{}", msg.magenta().bold());
+    let mut key_info_string = format!("{}", msg.magenta().bold());
 
     // Print info common on both private and public key
-    print_modulus(&key);
-    print_public_exponent(&key);
+    key_info_string.push_str(
+        &format_modulus(&key)
+    );
+
+    key_info_string.push_str(
+        &format_public_exponent(&key)
+    );
 
     // Print private key informations
     if let Key::Private(ref mut private_key) = key {
         // TODO: handle error, precompute can fail
         private_key.precompute().expect("Failed to precompute private key values");
 
-        // Export public key file
-        if let Some(pubkey_path) = pubout {
-            return export_pubkey(pubkey_path, &private_key, der)
-        }
-        
-        print!("\n");
-        print_private_exponent(&private_key);
+        key_info_string.push_str("\n");
+        key_info_string.push_str(&format_private_exponent(&private_key));
         print_primes(&private_key);
         print_exponents(&private_key);
         print_coefficient(&private_key);
         
     }
-
-    Ok(())
+    key_info_string
 }
 
 fn export_pubkey(pubkey_path: &PathBuf, private_key: &RsaPrivateKey, der: bool) -> Result<(), String> {
@@ -151,29 +162,29 @@ fn export_pubkey(pubkey_path: &PathBuf, private_key: &RsaPrivateKey, der: bool) 
     Ok(())
 }
 
-fn print_modulus(key: &Key) {
+fn format_modulus(key: &Key) -> String {
     let modulus = match key {
         Key::Public(key) => key.n(),
         Key::Private(key) => key.n(),
     };
 
     let hex_modulus = format_hex(modulus);
-    println!("{}\n{}\n", "modulus (n):".blue().bold(), hex_modulus);
+    format!("{}\n{}\n", "modulus (n):".blue().bold(), hex_modulus)
 }
 
-fn print_public_exponent(key: &Key) {
+fn format_public_exponent(key: &Key) -> String {
     let exponent = match key {
         Key::Public(key) => key.e(),
         Key::Private(key) => key.e(),
     };
 
-    println!("{} {} (0x{:x})", "public exponent (e):".blue().bold(), exponent, exponent);
+    format!("{} {} (0x{:x})", "public exponent (e):".blue().bold(), exponent, exponent)
 }
 
-fn print_private_exponent(private_key: &RsaPrivateKey) {
+fn format_private_exponent(private_key: &RsaPrivateKey) -> String {
     let modulus = private_key.d();
     let hex_modulus = format_hex(modulus);
-    println!("{}\n{}\n", "private exponent (d):".blue().bold(), hex_modulus);
+    format!("{}\n{}\n", "private exponent (d):".blue().bold(), hex_modulus)
 }
 
 fn print_primes(private_key: &RsaPrivateKey) {
