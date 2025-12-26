@@ -4,9 +4,6 @@ use colored::Colorize;
 use x509_parser::prelude::parse_x509_pem;
 use x509_parser::num_bigint::BigUint;
 
-// Take the OID list from here:
-// https://learn.microsoft.com/fr-fr/windows/win32/api/wincrypt/ns-wincrypt-crypt_algorithm_identifier
-
 // Read a certificate data
 pub fn read_certificate(cert_file: &PathBuf) -> Result<(), String> {
     
@@ -47,6 +44,8 @@ pub fn read_certificate(cert_file: &PathBuf) -> Result<(), String> {
     Ok(())
 }
 
+/// Convert OID to common name
+/// https://oidref.com/1.2.840.113549.1.1.1
 fn oid_to_string(oid: &String) -> String {
     match oid.as_ref() {
         "1.2.840.113549.1.1.1"   => "rsaEncryption".to_string(),
