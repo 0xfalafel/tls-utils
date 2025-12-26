@@ -19,29 +19,7 @@ pub fn read_certificate(cert_file: &PathBuf) -> Result<(), String> {
             println!("    {} {}", "Version:".blue().bold(), certificate.version().to_string().to_lowercase());           
             println!("    {}\n\t{}", "Serial number:".blue().bold(), format_hex(&certificate.serial));
 
-            let algorithm = match certificate.signature_algorithm.algorithm.to_id_string().as_ref() {
-                "1.2.840.113549.1.1.4"   => "md5WithRSAEncryption".to_string(),
-                "1.2.840.113549.1.1.5"   => "sha1WithRSAEncryption".to_string(),
-                "1.2.840.113549.1.1.11"  => "sha256WithRSAEncryption".to_string(),
-                "1.2.840.113549.1.1.12"  => "sha384WithRSAEncryption".to_string(),
-                "1.2.840.113549.1.1.13"  => "sha512WithRSAEncryption".to_string(),
-                "1.2.840.113549.1.1.14"  => "sha224WithRSAEncryption".to_string(),
-                "1.2.840.113549.1.1.10"  => "rsassaPss".to_string(),
-
-                "1.2.840.10045.4.1"      => "ecdsa-with-SHA1".to_string(),
-                "1.2.840.10045.4.3.1"    => "ecdsa-with-SHA224".to_string(),
-                "1.2.840.10045.4.3.2"    => "ecdsa-with-SHA256".to_string(),
-                "1.2.840.10045.4.3.3"    => "ecdsa-with-SHA384".to_string(),
-                "1.2.840.10045.4.3.4"    => "ecdsa-with-SHA512".to_string(),
-
-                "1.3.101.112"            => "Ed25519".to_string(),
-                "1.3.101.113"            => "Ed448".to_string(),
-
-                "1.2.840.10040.4.3"      => "dsa-with-sha1".to_string(),
-                "2.16.840.1.101.3.4.3.2" => "dsa-with-sha256".to_string(),
-
-                other => other.to_string(),
-            };
+            let algorithm = oid_to_string(&certificate.signature_algorithm.algorithm.to_id_string());
             println!("    {} {}", "Signature Algorithm:".blue().bold(), algorithm);
 
             println!("    {} {}", "Issuer:".blue().bold(), certificate.issuer.to_string().yellow().bold());
@@ -56,10 +34,44 @@ pub fn read_certificate(cert_file: &PathBuf) -> Result<(), String> {
 
             println!("    {} {}", "Subject:".blue().bold(), certificate.subject.to_string().yellow().bold());
 
+            println!("    {}", "Subject Public Key Info:".blue().bold());
+
+            let public_key = certificate.public_key();
+            let pubkey_alg = oid_to_string(&public_key.algorithm.algorithm.to_id_string());
+            println!("    \t{} {}", "Public Key Algorithm:".blue().bold(), pubkey_alg);
+
+
         }
     }        
 
     Ok(())
+}
+
+fn oid_to_string(oid: &String) -> String {
+    match oid.as_ref() {
+        "1.2.840.113549.1.1.1"   => "rsaEncryption".to_string(),
+        "1.2.840.113549.1.1.4"   => "md5WithRSAEncryption".to_string(),
+        "1.2.840.113549.1.1.5"   => "sha1WithRSAEncryption".to_string(),
+        "1.2.840.113549.1.1.10"  => "rsassaPss".to_string(),
+        "1.2.840.113549.1.1.11"  => "sha256WithRSAEncryption".to_string(),
+        "1.2.840.113549.1.1.12"  => "sha384WithRSAEncryption".to_string(),
+        "1.2.840.113549.1.1.13"  => "sha512WithRSAEncryption".to_string(),
+        "1.2.840.113549.1.1.14"  => "sha224WithRSAEncryption".to_string(),
+
+        "1.2.840.10045.4.1"      => "ecdsa-with-SHA1".to_string(),
+        "1.2.840.10045.4.3.1"    => "ecdsa-with-SHA224".to_string(),
+        "1.2.840.10045.4.3.2"    => "ecdsa-with-SHA256".to_string(),
+        "1.2.840.10045.4.3.3"    => "ecdsa-with-SHA384".to_string(),
+        "1.2.840.10045.4.3.4"    => "ecdsa-with-SHA512".to_string(),
+
+        "1.3.101.112"            => "Ed25519".to_string(),
+        "1.3.101.113"            => "Ed448".to_string(),
+
+        "1.2.840.10040.4.3"      => "dsa-with-sha1".to_string(),
+        "2.16.840.1.101.3.4.3.2" => "dsa-with-sha256".to_string(),
+
+        other => other.to_string(),
+    }
 }
 
 
