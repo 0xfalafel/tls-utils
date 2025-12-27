@@ -91,7 +91,7 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>, der: bool) -> Result<(),
     }
     
     let mut key: Key = read_key(keyfile)?;
-    println!("{}", format_key(&mut key));
+    println!("{}", display_key(&mut key));
 
     if let Key::Private(ref mut private_key) = key {
         // Export public key file
@@ -103,7 +103,7 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>, der: bool) -> Result<(),
     Ok(())
 }
 
-fn format_key(key: &mut Key) -> String {
+fn display_key(key: &mut Key) -> String {
     // Print info about the key
 
     let key_size = match &key {
@@ -125,6 +125,7 @@ fn format_key(key: &mut Key) -> String {
     key_info_string.push_str(
         &format_modulus(&key)
     );
+    key_info_string.push('\n');
 
     key_info_string.push_str(
         &format_public_exponent(&key)
@@ -137,9 +138,16 @@ fn format_key(key: &mut Key) -> String {
 
         key_info_string.push_str("\n");
         key_info_string.push_str(&format_private_exponent(&private_key));
-        print_primes(&private_key);
-        print_exponents(&private_key);
-        print_coefficient(&private_key);
+        
+        key_info_string.push_str(
+            &format_primes(&private_key)
+        );
+        key_info_string.push_str(
+            &format_exponents(&private_key)
+        );
+        key_info_string.push_str(
+            &format_coefficient(&private_key)
+        );
         
     }
     key_info_string
@@ -184,33 +192,44 @@ fn format_public_exponent(key: &Key) -> String {
 fn format_private_exponent(private_key: &RsaPrivateKey) -> String {
     let modulus = private_key.d();
     let hex_modulus = format_hex(modulus);
-    format!("{}\n{}\n", "private exponent (d):".blue().bold(), hex_modulus)
+    format!("\n{}\n{}\n", "private exponent (d):".blue().bold(), hex_modulus)
 }
 
-fn print_primes(private_key: &RsaPrivateKey) {
+fn format_primes(private_key: &RsaPrivateKey) -> String {
     let primes = private_key.primes();
     let p = primes.iter().nth(0).unwrap();
     let q = primes.iter().nth(1).unwrap();
 
     let p_hex = format_hex(p);
     let q_hex = format_hex(q);
-    println!("{}\n{}\n", "prime1 (p):".blue().bold(), p_hex);
-    println!("{}\n{}\n", "prime2 (q):".blue().bold(), q_hex);
+
+    format!( "\n{}\n{}\n", "prime1 (p):".blue().bold(), p_hex) + 
+    &format!("\n{}\n{}\n", "prime2 (q):".blue().bold(), q_hex)
 }
 
-fn print_exponents(private_key: &RsaPrivateKey) {
+fn format_exponents(private_key: &RsaPrivateKey) -> String {
+    let mut exponents_string= String::new();
+
     if let Some(dp) = private_key.dp() {
-        println!("{}\n{}\n", "exponent1 (dp):".blue().bold(), format_hex(dp));
+        exponents_string.push_str(
+            &format!("\n{}\n{}\n", "exponent1 (dp):".blue().bold(), format_hex(dp))
+        );
     }
 
     if let Some(dq) = private_key.dq() {
-        println!("{}\n{}\n", "exponent2 (dq):".blue().bold(), format_hex(dq));
+        exponents_string.push_str(
+        &format!("\n{}\n{}\n", "exponent2 (dq):".blue().bold(), format_hex(dq))
+        )
     }
+
+    exponents_string
 }
 
-fn print_coefficient(private_key: &RsaPrivateKey) {
+fn format_coefficient(private_key: &RsaPrivateKey) -> String {
     if let Some(crt_coefficient) = private_key.crt_coefficient() {
-        println!("{}\n{}", "coefficient:".blue().bold(), format_hex(&crt_coefficient));
+        format!("\n{}\n{}", "coefficient:".blue().bold(), format_hex(&crt_coefficient))
+    } else {
+        String::from("")
     }
 }
 
