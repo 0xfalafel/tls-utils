@@ -9,7 +9,7 @@ use rsa::traits::{PrivateKeyParts, PublicKeyParts};
 use rsa::BigUint;
 // use num_bigint::BigUint;
 
-enum Key {
+pub enum Key {
     Public(RsaPublicKey),
     Private(RsaPrivateKey),
 }
@@ -103,7 +103,7 @@ pub fn key(keyfile: &PathBuf, pubout: &Option<PathBuf>, der: bool) -> Result<(),
     Ok(())
 }
 
-fn display_key(key: &mut Key) -> String {
+pub fn display_key(key: &mut Key) -> String {
     // Print info about the key
 
     let key_size = match &key {

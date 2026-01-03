@@ -4,6 +4,8 @@ use colored::Colorize;
 use x509_parser::prelude::parse_x509_pem;
 use x509_parser::num_bigint::BigUint;
 
+use crate::key::{Key, display_key};
+
 // Read a certificate data
 pub fn read_certificate(cert_file: &PathBuf) -> Result<(), String> {
     
@@ -37,7 +39,7 @@ pub fn read_certificate(cert_file: &PathBuf) -> Result<(), String> {
             let pubkey_alg = oid_to_string(&public_key.algorithm.algorithm.to_id_string());
             println!("    \t{} {}", "Public Key Algorithm:".blue().bold(), pubkey_alg);
 
-
+            let display_pubkey = display_key(&mut Key::Public(public_key));
         }
     }        
 
