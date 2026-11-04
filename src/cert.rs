@@ -1,8 +1,12 @@
 use std::path::PathBuf;
 use std::fs;
 use colored::Colorize;
-use x509_parser::prelude::parse_x509_pem;
+use x509_cert::Certificate;
+use x509_cert::der::{Decode, DecodePem};
+// use x509_parser::prelude::parse_x509_pem;
 use x509_parser::num_bigint::BigUint;
+
+
 
 // use crate::key::{Key, display_key};
 
@@ -12,36 +16,40 @@ pub fn read_certificate(cert_file: &PathBuf) -> Result<(), String> {
     let file_content = fs::read(cert_file)
         .map_err(|_| format!("Failed to read the content of {}", cert_file.display()))?;
 
-    if let Ok((_remaining_bytes, pem_certificate)) = parse_x509_pem(&file_content) {
-        if let Ok(certificate) = pem_certificate.parse_x509() {
-            println!("{}", "Certificate (x509):".magenta().bold());
-            println!("    {} {}", "Version:".blue().bold(), certificate.version().to_string().to_lowercase());           
-            println!("    {}\n\t{}", "Serial number:".blue().bold(), format_hex(&certificate.serial));
+    let certificate = Certificate::from_der(&file_content)
+        .or_else(|_| Certificate::from_pem(String::from_utf8_lossy(&file_content).into_owned()))
+        .map_err(|_| format!("Failed to parse the content of {} as an x509 certificate", cert_file.display()))?;
 
-            let algorithm = oid_to_string(&certificate.signature_algorithm.algorithm.to_id_string());
-            println!("    {} {}", "Signature Algorithm:".blue().bold(), algorithm);
+    // if let Ok((_remaining_bytes, pem_certificate)) = parse_x509_pem(&file_content) {
+    //     if let Ok(certificate) = pem_certificate.parse_x509() {
+    //         println!("{}", "Certificate (x509):".magenta().bold());
+    //         println!("    {} {}", "Version:".blue().bold(), certificate.version().to_string().to_lowercase());           
+    //         println!("    {}\n\t{}", "Serial number:".blue().bold(), format_hex(&certificate.serial));
 
-            println!("    {} {}", "Issuer:".blue().bold(), certificate.issuer.to_string().yellow().bold());
+    //         let algorithm = oid_to_string(&certificate.signature_algorithm.algorithm.to_id_string());
+    //         println!("    {} {}", "Signature Algorithm:".blue().bold(), algorithm);
 
-            println!("    {}", "Validity:".blue().bold());
-            match certificate.validity.is_valid() {
-                true  => println!("    \t{}", "Certificate is valid".green().bold()),
-                false => println!("    \t{}", "Certificate is expired".red().bold()),
-            };
-            println!("    \t{} {}", "Not Before:".blue().bold(), certificate.validity.not_before);
-            println!("    \t{} {}", "Not After:".blue().bold(), certificate.validity.not_after);
+    //         println!("    {} {}", "Issuer:".blue().bold(), certificate.issuer.to_string().yellow().bold());
 
-            println!("    {} {}", "Subject:".blue().bold(), certificate.subject.to_string().yellow().bold());
+    //         println!("    {}", "Validity:".blue().bold());
+    //         match certificate.validity.is_valid() {
+    //             true  => println!("    \t{}", "Certificate is valid".green().bold()),
+    //             false => println!("    \t{}", "Certificate is expired".red().bold()),
+    //         };
+    //         println!("    \t{} {}", "Not Before:".blue().bold(), certificate.validity.not_before);
+    //         println!("    \t{} {}", "Not After:".blue().bold(), certificate.validity.not_after);
 
-            println!("    {}", "Subject Public Key Info:".blue().bold());
+    //         println!("    {} {}", "Subject:".blue().bold(), certificate.subject.to_string().yellow().bold());
 
-            let public_key = certificate.public_key();
-            let pubkey_alg = oid_to_string(&public_key.algorithm.algorithm.to_id_string());
-            println!("    \t{} {}", "Public Key Algorithm:".blue().bold(), pubkey_alg);
+    //         println!("    {}", "Subject Public Key Info:".blue().bold());
 
-            // let display_pubkey = display_key(&mut Key::Public(public_key));
-        }
-    }        
+    //         let public_key = certificate.public_key();
+    //         let pubkey_alg = oid_to_string(&public_key.algorithm.algorithm.to_id_string());
+    //         println!("    \t{} {}", "Public Key Algorithm:".blue().bold(), pubkey_alg);
+
+    //         // let display_pubkey = display_key(&mut Key::Public(public_key));
+    //     }
+    // }        
 
     Ok(())
 }
