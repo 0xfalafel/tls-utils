@@ -13,6 +13,7 @@ use x509_parser::num_bigint::BigUint;
 // Read a certificate data
 pub fn read_certificate(cert_file: &PathBuf) -> Result<(), String> {
     
+    // Parse x509 certificate
     let file_content = fs::read(cert_file)
         .map_err(|_| format!("Failed to read the content of {}", cert_file.display()))?;
 
@@ -20,36 +21,37 @@ pub fn read_certificate(cert_file: &PathBuf) -> Result<(), String> {
         .or_else(|_| Certificate::from_pem(String::from_utf8_lossy(&file_content).into_owned()))
         .map_err(|_| format!("Failed to parse the content of {} as an x509 certificate", cert_file.display()))?;
 
-    // if let Ok((_remaining_bytes, pem_certificate)) = parse_x509_pem(&file_content) {
-    //     if let Ok(certificate) = pem_certificate.parse_x509() {
-    //         println!("{}", "Certificate (x509):".magenta().bold());
-    //         println!("    {} {}", "Version:".blue().bold(), certificate.version().to_string().to_lowercase());           
-    //         println!("    {}\n\t{}", "Serial number:".blue().bold(), format_hex(&certificate.serial));
 
-    //         let algorithm = oid_to_string(&certificate.signature_algorithm.algorithm.to_id_string());
-    //         println!("    {} {}", "Signature Algorithm:".blue().bold(), algorithm);
+    // Display the value of each field
+    let cert_data = certificate.tbs_certificate();
 
-    //         println!("    {} {}", "Issuer:".blue().bold(), certificate.issuer.to_string().yellow().bold());
+    println!("{}", "Certificate (x509):".magenta().bold());
+    println!("    {} {}", "Version:".blue().bold(), (cert_data.version() as u8) + 1);
 
-    //         println!("    {}", "Validity:".blue().bold());
-    //         match certificate.validity.is_valid() {
-    //             true  => println!("    \t{}", "Certificate is valid".green().bold()),
-    //             false => println!("    \t{}", "Certificate is expired".red().bold()),
-    //         };
-    //         println!("    \t{} {}", "Not Before:".blue().bold(), certificate.validity.not_before);
-    //         println!("    \t{} {}", "Not After:".blue().bold(), certificate.validity.not_after);
+    // println!("    {}\n\t{}", "Serial number:".blue().bold(), format_hex(&certificate.serial));
 
-    //         println!("    {} {}", "Subject:".blue().bold(), certificate.subject.to_string().yellow().bold());
+    // let algorithm = oid_to_string(&certificate.signature_algorithm.algorithm.to_id_string());
+    // println!("    {} {}", "Signature Algorithm:".blue().bold(), algorithm);
 
-    //         println!("    {}", "Subject Public Key Info:".blue().bold());
+    // println!("    {} {}", "Issuer:".blue().bold(), certificate.issuer.to_string().yellow().bold());
 
-    //         let public_key = certificate.public_key();
-    //         let pubkey_alg = oid_to_string(&public_key.algorithm.algorithm.to_id_string());
-    //         println!("    \t{} {}", "Public Key Algorithm:".blue().bold(), pubkey_alg);
+    // println!("    {}", "Validity:".blue().bold());
+    // match certificate.validity.is_valid() {
+    //     true  => println!("    \t{}", "Certificate is valid".green().bold()),
+    //     false => println!("    \t{}", "Certificate is expired".red().bold()),
+    // };
+    // println!("    \t{} {}", "Not Before:".blue().bold(), certificate.validity.not_before);
+    // println!("    \t{} {}", "Not After:".blue().bold(), certificate.validity.not_after);
 
-    //         // let display_pubkey = display_key(&mut Key::Public(public_key));
-    //     }
-    // }        
+    // println!("    {} {}", "Subject:".blue().bold(), certificate.subject.to_string().yellow().bold());
+
+    // println!("    {}", "Subject Public Key Info:".blue().bold());
+
+    // let public_key = certificate.public_key();
+    // let pubkey_alg = oid_to_string(&public_key.algorithm.algorithm.to_id_string());
+    // println!("    \t{} {}", "Public Key Algorithm:".blue().bold(), pubkey_alg);
+
+    // let display_pubkey = display_key(&mut Key::Public(public_key));
 
     Ok(())
 }
