@@ -27,11 +27,11 @@ pub fn read_certificate(cert_file: &PathBuf) -> Result<(), String> {
 
     println!("{}", "Certificate (x509):".magenta().bold());
     println!("    {} {}", "Version:".blue().bold(), (cert_data.version() as u8) + 1);
+    println!("    {}\n\t{}", "Serial number:".blue().bold(), cert_data.serial_number());
 
-    // println!("    {}\n\t{}", "Serial number:".blue().bold(), format_hex(&certificate.serial));
+    let algorithm = oid_to_string(&certificate.signature_algorithm().oid.to_string());
+    println!("    {} {}", "Signature Algorithm:".blue().bold(), algorithm);
 
-    // let algorithm = oid_to_string(&certificate.signature_algorithm.algorithm.to_id_string());
-    // println!("    {} {}", "Signature Algorithm:".blue().bold(), algorithm);
 
     // println!("    {} {}", "Issuer:".blue().bold(), certificate.issuer.to_string().yellow().bold());
 
@@ -84,28 +84,3 @@ fn oid_to_string(oid: &String) -> String {
         other => other.to_string(),
     }
 }
-
-
-fn format_hex(number: &BigUint) -> String {
-    let mut n_chars: usize = (number.bits() / 4).try_into().unwrap(); // / 8 bits * 2 char per byte
-
-    // pad if we miss a 0 at the start
-    if n_chars % 2 != 0 {
-        n_chars = n_chars+1;
-    }
-
-    // print the number as hex in a string
-    let hex= format!("{:0>n_chars$x}", number);
-
-    // format it in openssl style
-    let mut result = String::new();
-    for (i, chunk) in hex.as_bytes().chunks(2).enumerate() {
-        let byte = std::str::from_utf8(chunk).unwrap();
-        result.push_str(byte);
-        // Add a colon after each byte except the last one
-        if (i + 1) != 0 && (i + 1) < hex.len() / 2 {
-            result.push(':');
-        }
-    }
-    result
-}   
