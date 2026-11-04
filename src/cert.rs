@@ -1,12 +1,9 @@
 use std::path::PathBuf;
 use std::fs;
+use std::time::SystemTime;
 use colored::Colorize;
 use x509_cert::Certificate;
 use x509_cert::der::{Decode, DecodePem};
-// use x509_parser::prelude::parse_x509_pem;
-use x509_parser::num_bigint::BigUint;
-
-
 
 // use crate::key::{Key, display_key};
 
@@ -31,25 +28,30 @@ pub fn read_certificate(cert_file: &PathBuf) -> Result<(), String> {
 
     let algorithm = oid_to_string(&certificate.signature_algorithm().oid.to_string());
     println!("    {} {}", "Signature Algorithm:".blue().bold(), algorithm);
+    println!("    {} {}", "Issuer:".blue().bold(), cert_data.issuer().to_string().yellow().bold());
 
+    let now = SystemTime::now();
+    let not_before = cert_data.validity().not_before.to_system_time();
+    let not_after = cert_data.validity().not_after.to_system_time();
+    
+    println!("    {}", "Validity:".blue().bold());
 
-    // println!("    {} {}", "Issuer:".blue().bold(), certificate.issuer.to_string().yellow().bold());
+    match now {
+        now if now < not_before => println!("    \t{}", "Certificate is not valid yet".red().bold()),
+        now if now > not_after  => println!("    \t{}", "Certificate is expired".red().bold()),
+        _ => println!("    \t{}", "Certificate is valid".green().bold()),
+    }
+    
+    // Todo: improve the display of dates
+    println!("    \t{} {}", "Not Before:".blue().bold(), cert_data.validity().not_before);
+    println!("    \t{} {}", "Not After:".blue().bold(), cert_data.validity().not_after);
 
-    // println!("    {}", "Validity:".blue().bold());
-    // match certificate.validity.is_valid() {
-    //     true  => println!("    \t{}", "Certificate is valid".green().bold()),
-    //     false => println!("    \t{}", "Certificate is expired".red().bold()),
-    // };
-    // println!("    \t{} {}", "Not Before:".blue().bold(), certificate.validity.not_before);
-    // println!("    \t{} {}", "Not After:".blue().bold(), certificate.validity.not_after);
-
-    // println!("    {} {}", "Subject:".blue().bold(), certificate.subject.to_string().yellow().bold());
-
-    // println!("    {}", "Subject Public Key Info:".blue().bold());
-
-    // let public_key = certificate.public_key();
-    // let pubkey_alg = oid_to_string(&public_key.algorithm.algorithm.to_id_string());
-    // println!("    \t{} {}", "Public Key Algorithm:".blue().bold(), pubkey_alg);
+    println!("    {} {}", "Subject:".blue().bold(), cert_data.subject().to_string().yellow().bold());
+    
+    println!("    {}", "Subject Public Key Info:".blue().bold());
+    let public_key = certificate.tbs_certificate().subject_public_key_info();
+    let pubkey_alg = oid_to_string(&public_key.algorithm.oid.to_string());
+    println!("    \t{} {}", "Public Key Algorithm:".blue().bold(), pubkey_alg);
 
     // let display_pubkey = display_key(&mut Key::Public(public_key));
 
