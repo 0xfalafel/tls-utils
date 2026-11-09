@@ -2,10 +2,13 @@ use std::path::PathBuf;
 use std::fs;
 use std::time::SystemTime;
 use colored::Colorize;
+use rsa::RsaPublicKey;
+use rsa::pkcs8::DecodePublicKey;
 use x509_cert::Certificate;
 use x509_cert::der::{Decode, DecodePem};
+use x509_parser::public_key;
 
-// use crate::key::{Key, display_key};
+use crate::key::{Key, display_key};
 
 // Read a certificate data
 pub fn read_certificate(cert_file: &PathBuf) -> Result<(), String> {
@@ -20,19 +23,19 @@ pub fn read_certificate(cert_file: &PathBuf) -> Result<(), String> {
 
 
     // Display the value of each field
-    let cert_data = certificate.tbs_certificate();
+    let certificate_data = certificate.tbs_certificate();
 
     println!("{}", "Certificate (x509):".magenta().bold());
-    println!("    {} {}", "Version:".blue().bold(), (cert_data.version() as u8) + 1);
-    println!("    {}\n\t{}", "Serial number:".blue().bold(), cert_data.serial_number());
+    println!("    {} {}", "Version:".blue().bold(), (certificate_data.version() as u8) + 1);
+    println!("    {}\n\t{}", "Serial number:".blue().bold(), certificate_data.serial_number());
 
     let algorithm = oid_to_string(&certificate.signature_algorithm().oid.to_string());
     println!("    {} {}", "Signature Algorithm:".blue().bold(), algorithm);
-    println!("    {} {}", "Issuer:".blue().bold(), cert_data.issuer().to_string().yellow().bold());
+    println!("    {} {}", "Issuer:".blue().bold(), certificate_data.issuer().to_string().yellow().bold());
 
     let now = SystemTime::now();
-    let not_before = cert_data.validity().not_before.to_system_time();
-    let not_after = cert_data.validity().not_after.to_system_time();
+    let not_before = certificate_data.validity().not_before.to_system_time();
+    let not_after = certificate_data.validity().not_after.to_system_time();
     
     println!("    {}", "Validity:".blue().bold());
 
@@ -43,17 +46,27 @@ pub fn read_certificate(cert_file: &PathBuf) -> Result<(), String> {
     }
     
     // Todo: improve the display of dates
-    println!("    \t{} {}", "Not Before:".blue().bold(), cert_data.validity().not_before);
-    println!("    \t{} {}", "Not After:".blue().bold(), cert_data.validity().not_after);
+    println!("    \t{} {}", "Not Before:".blue().bold(), certificate_data.validity().not_before);
+    println!("    \t{} {}", "Not After:".blue().bold(), certificate_data.validity().not_after);
 
-    println!("    {} {}", "Subject:".blue().bold(), cert_data.subject().to_string().yellow().bold());
+    println!("    {} {}", "Subject:".blue().bold(), certificate_data.subject().to_string().yellow().bold());
     
     println!("    {}", "Subject Public Key Info:".blue().bold());
-    let public_key = certificate.tbs_certificate().subject_public_key_info();
-    let pubkey_alg = oid_to_string(&public_key.algorithm.oid.to_string());
+    let public_key_info = certificate_data.subject_public_key_info();
+    let pubkey_alg = oid_to_string(&public_key_info.algorithm.oid.to_string());
     println!("    \t{} {}", "Public Key Algorithm:".blue().bold(), pubkey_alg);
 
-    // let display_pubkey = display_key(&mut Key::Public(public_key));
+    if let Some(public_key_der) = public_key_info.subject_public_key.as_bytes() {
+        println!("public_key_der: {:?}", public_key_der);
+
+        if let Ok(rsa_public_key) = RsaPublicKey::from_public_key_der(public_key_der) {
+            display_key(&Key::Public(rsa_public_key));
+        } else {
+            eprintln!("Not a rsa public key ??");
+        }
+    } else {
+        eprintln!("No public key in the certificate");
+    }
 
     Ok(())
 }
