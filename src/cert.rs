@@ -3,10 +3,10 @@ use std::fs;
 use std::time::SystemTime;
 use colored::Colorize;
 use rsa::RsaPublicKey;
+use rsa::pkcs1::DecodeRsaPublicKey;
 use rsa::pkcs8::DecodePublicKey;
 use x509_cert::Certificate;
 use x509_cert::der::{Decode, DecodePem};
-use x509_parser::public_key;
 
 use crate::key::{Key, display_key};
 
@@ -57,10 +57,13 @@ pub fn read_certificate(cert_file: &PathBuf) -> Result<(), String> {
     println!("    \t{} {}", "Public Key Algorithm:".blue().bold(), pubkey_alg);
 
     if let Some(public_key_der) = public_key_info.subject_public_key.as_bytes() {
-        println!("public_key_der: {:?}", public_key_der);
 
-        if let Ok(rsa_public_key) = RsaPublicKey::from_public_key_der(public_key_der) {
-            display_key(&Key::Public(rsa_public_key));
+        if let Ok(rsa_public_key) = RsaPublicKey::from_pkcs1_der(public_key_der) {
+            let pubkey_display = display_key(&Key::Public(rsa_public_key));
+            print!("{}", indent(&pubkey_display, 3));
+        } else if let Ok(rsa_public_key) = RsaPublicKey::from_public_key_der(public_key_der) {
+            let pubkey_display = display_key(&Key::Public(rsa_public_key));
+            print!("{}", indent(&pubkey_display, 3));
         } else {
             eprintln!("Not a rsa public key ??");
         }
@@ -98,4 +101,11 @@ fn oid_to_string(oid: &String) -> String {
 
         other => other.to_string(),
     }
+}
+
+fn indent(str: &String, n: usize) -> String {
+    str.lines()
+        .map(|line| format!("{}{}", "    ".repeat(n), line))
+        .collect::<Vec<String>>()
+        .join("\n")
 }
